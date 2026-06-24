@@ -106,9 +106,10 @@ def build_selection_table(df):
         .rename(columns={"'24": "Jan–May '24", "'25": "Jan–May '25", "'26": "Jan–May '26"})
     )
     with_data = ytd[ytd[["Jan–May '24", "Jan–May '25", "Jan–May '26"]].sum(axis=1) > 0].copy()
-    prev = with_data["Jan–May '25"].replace(0, pd.NA)
-    pct  = ((with_data["Jan–May '26"] - with_data["Jan–May '25"]) / prev * 100).round(0)
-    with_data["Δ '25→'26"] = pct.fillna(0).astype(int).astype(str) + "%"
+    prev = with_data["Jan–May '25"].astype(float)
+    change = (with_data["Jan–May '26"] - with_data["Jan–May '25"]).astype(float)
+    pct = (change / prev.where(prev > 0, 1.0) * 100).where(prev > 0, 0.0)
+    with_data["Δ '25→'26"] = pct.round(0).astype(int).astype(str) + "%"
     return with_data.sort_values("Jan–May '25", ascending=False)
 
 
