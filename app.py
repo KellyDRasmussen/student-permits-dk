@@ -142,10 +142,11 @@ with st.sidebar:
 
     st.divider()
 
+    dim_options = ["Show all"] + list(DIMENSIONS.keys())
     dimension = st.selectbox(
         "Group countries by",
-        options=["Show all"] + list(DIMENSIONS.keys()),
-        index=0,
+        options=dim_options,
+        index=dim_options.index("Western / Non-Western"),
     )
 
     if dimension != "Show all":
@@ -185,6 +186,11 @@ df_all    = build_dataset(annual_raw, monthly_raw, education_only)
 y_max     = compute_y_max(df_all)
 sel_table = build_selection_table(df_all)
 
+if "selected_countries" not in st.session_state:
+    st.session_state.selected_countries = []
+selected_countries = [c for c in st.session_state.selected_countries
+                      if c in df_all["country"].values]
+
 # Apply group / threshold filters for the group view
 df = df_all.copy()
 if dimension != "Show all" and not aggregate_mode:
@@ -221,150 +227,149 @@ for country, col_widget in [("Nepal", c3), ("Bangladesh", c4)]:
 st.divider()
 
 
-# ── Main area: selection table (left) + chart (right) ────────────────────────
+# ── Chart (full width) ────────────────────────────────────────────────────────
 
-col_sel, col_chart = st.columns([1, 2.8])
+compare_mode = len(selected_countries) > 0
 
-# ── Left: selection table ─────────────────────────────────────────────────────
-with col_sel:
-    st.caption("Select up to 5 countries to compare — clears the group view.")
-    event = st.dataframe(
-        sel_table,
-        use_container_width=True,
-        height=530,
-        on_select="rerun",
-        selection_mode="multi-row",
-    )
-    raw_rows = event.selection.rows
-    valid_rows = [i for i in raw_rows if i < len(sel_table)]
-    selected_countries = [sel_table.index[i] for i in valid_rows[:5]]
-    if len(raw_rows) > 5:
-        st.caption("⚠️ Only the first 5 selections are plotted.")
+fig = go.Figure()
 
-# ── Right: chart ──────────────────────────────────────────────────────────────
-with col_chart:
-
-    compare_mode = len(selected_countries) > 0
-
-    fig = go.Figure()
-
-    # Background shading + break line
+# Background shading + break line
+fig.add_shape(
+    type="rect", x0=BREAK_AT, x1=len(PERIOD_ORDER) - 0.5, y0=0, y1=1,
+    xref="x", yref="paper", fillcolor="rgba(210,225,255,0.2)",
+    line=dict(width=0), layer="below",
+)
+fig.add_shape(
+    type="line", x0=BREAK_AT, x1=BREAK_AT, y0=0, y1=1,
+    xref="x", yref="paper",
+    line=dict(color="rgba(80,80,80,0.35)", width=1.5, dash="dash"),
+)
+fig.add_annotation(
+    x=1, y=1.06, xref="x", yref="paper",
+    text="← Annual", showarrow=False, font=dict(size=11, color="#888"), xanchor="center",
+)
+fig.add_annotation(
+    x=BREAK_AT + 14, y=1.06, xref="x", yref="paper",
+    text="Monthly →", showarrow=False, font=dict(size=11, color="#888"), xanchor="center",
+)
+for jan_label in JAN_TICKS:
+    idx = PERIOD_ORDER.index(jan_label)
     fig.add_shape(
-        type="rect", x0=BREAK_AT, x1=len(PERIOD_ORDER) - 0.5, y0=0, y1=1,
-        xref="x", yref="paper", fillcolor="rgba(210,225,255,0.2)",
-        line=dict(width=0), layer="below",
+        type="line", x0=idx, x1=idx, y0=0, y1=1, xref="x", yref="paper",
+        line=dict(color="rgba(150,150,150,0.2)", width=1), layer="below",
     )
-    fig.add_shape(
-        type="line", x0=BREAK_AT, x1=BREAK_AT, y0=0, y1=1,
-        xref="x", yref="paper",
-        line=dict(color="rgba(80,80,80,0.35)", width=1.5, dash="dash"),
+
+if compare_mode:
+    # ── Up to 5 selected countries, individually labelled ─────────────────
+    for i, country in enumerate(selected_countries):
+        cdf = df_all[df_all["country"] == country].sort_values("period")
+        if cdf.empty:
+            continue
+        color = OKABE_ITO[i % len(OKABE_ITO)]
+        texts = [""] * len(cdf)
+        texts[-1] = country
+        fig.add_trace(go.Scatter(
+            x=cdf["period"].astype(str),
+            y=cdf["permits"],
+            mode="lines+markers+text",
+            name=country,
+            text=texts,
+            textposition="middle right",
+            textfont=dict(size=11, color=color),
+            line=dict(color=color, width=2.5),
+            marker=dict(size=5),
+            showlegend=False,
+            hovertemplate=f"<b>{country}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
+        ))
+
+elif aggregate_mode:
+    # ── Two group-total lines ─────────────────────────────────────────────
+    dim_col = dimension.split(" / ")[0].lower().replace(" ", "_")
+    group_agg = (
+        df_all.groupby([dim_col, "period"], observed=True)["permits"].sum()
+        .reset_index().rename(columns={dim_col: "grp"})
     )
-    fig.add_annotation(
-        x=1, y=1.06, xref="x", yref="paper",
-        text="← Annual", showarrow=False, font=dict(size=11, color="#888"), xanchor="center",
+    group_agg["period"] = pd.Categorical(
+        group_agg["period"], categories=PERIOD_ORDER, ordered=True
     )
-    fig.add_annotation(
-        x=BREAK_AT + 14, y=1.06, xref="x", yref="paper",
-        text="Monthly →", showarrow=False, font=dict(size=11, color="#888"), xanchor="center",
-    )
-    for jan_label in JAN_TICKS:
-        idx = PERIOD_ORDER.index(jan_label)
-        fig.add_shape(
-            type="line", x0=idx, x1=idx, y0=0, y1=1, xref="x", yref="paper",
-            line=dict(color="rgba(150,150,150,0.2)", width=1), layer="below",
-        )
+    for i, grp_label in enumerate([label_in, label_out]):
+        gdf = group_agg[group_agg["grp"] == grp_label].sort_values("period")
+        if gdf.empty:
+            continue
+        color = AGG_COLORS[i]
+        texts = [""] * len(gdf)
+        texts[-1] = grp_label
+        fig.add_trace(go.Scatter(
+            x=gdf["period"].astype(str),
+            y=gdf["permits"],
+            mode="lines+text",
+            name=grp_label,
+            text=texts,
+            textposition="middle right",
+            textfont=dict(size=12, color=color),
+            line=dict(color=color, width=2.5),
+            showlegend=False,
+            hovertemplate=f"<b>{grp_label}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
+        ))
 
-    if compare_mode:
-        # ── Up to 5 selected countries, individually labelled ─────────────────
-        for i, country in enumerate(selected_countries):
-            cdf = df_all[df_all["country"] == country].sort_values("period")
-            if cdf.empty:
-                continue
-            color = OKABE_ITO[i % len(OKABE_ITO)]
-            texts = [""] * len(cdf)
-            texts[-1] = country
-            fig.add_trace(go.Scatter(
-                x=cdf["period"].astype(str),
-                y=cdf["permits"],
-                mode="lines+markers+text",
-                name=country,
-                text=texts,
-                textposition="middle right",
-                textfont=dict(size=11, color=color),
-                line=dict(color=color, width=2.5),
-                marker=dict(size=5),
-                showlegend=False,
-                hovertemplate=f"<b>{country}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
-            ))
+else:
+    # ── Individual country lines (group/threshold view) ───────────────────
+    palette = px.colors.qualitative.Safe
+    for i, country in enumerate(sorted(df["country"].unique())):
+        cdf = df[df["country"] == country].sort_values("period")
+        fig.add_trace(go.Scatter(
+            x=cdf["period"].astype(str),
+            y=cdf["permits"],
+            mode="lines",
+            name=country,
+            line=dict(color=palette[i % len(palette)], width=1.5),
+            opacity=0.7,
+            showlegend=False,
+            hovertemplate=f"<b>{country}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
+        ))
 
-    elif aggregate_mode:
-        # ── Two group-total lines ─────────────────────────────────────────────
-        dim_col = dimension.split(" / ")[0].lower().replace(" ", "_")
-        group_agg = (
-            df_all.groupby([dim_col, "period"])["permits"].sum()
-            .reset_index().rename(columns={dim_col: "grp"})
-        )
-        group_agg["period"] = pd.Categorical(
-            group_agg["period"], categories=PERIOD_ORDER, ordered=True
-        )
-        for i, grp_label in enumerate([label_in, label_out]):
-            gdf = group_agg[group_agg["grp"] == grp_label].sort_values("period")
-            if gdf.empty:
-                continue
-            color = AGG_COLORS[i]
-            texts = [""] * len(gdf)
-            texts[-1] = grp_label
-            fig.add_trace(go.Scatter(
-                x=gdf["period"].astype(str),
-                y=gdf["permits"],
-                mode="lines+text",
-                name=grp_label,
-                text=texts,
-                textposition="middle right",
-                textfont=dict(size=12, color=color),
-                line=dict(color=color, width=2.5),
-                showlegend=False,
-                hovertemplate=f"<b>{grp_label}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
-            ))
+fig.update_layout(
+    height=560,
+    xaxis=dict(
+        title=None,
+        categoryorder="array",
+        categoryarray=PERIOD_ORDER,
+        tickmode="array",
+        tickvals=LABELED_TICKS,
+        ticktext=LABELED_TICKS,
+        tickangle=0,
+    ),
+    yaxis=dict(title="Study permits issued", range=[0, y_max] if not compare_mode else None),
+    hovermode="closest",
+    showlegend=False,
+    margin=dict(l=0, r=110, t=45, b=0),
+    plot_bgcolor="white",
+    paper_bgcolor="white",
+)
+fig.update_xaxes(showgrid=False)
+fig.update_yaxes(gridcolor="#eeeeee")
 
-    else:
-        # ── Individual country lines (group/threshold view) ───────────────────
-        palette = px.colors.qualitative.Safe
-        for i, country in enumerate(sorted(df["country"].unique())):
-            cdf = df[df["country"] == country].sort_values("period")
-            fig.add_trace(go.Scatter(
-                x=cdf["period"].astype(str),
-                y=cdf["permits"],
-                mode="lines",
-                name=country,
-                line=dict(color=palette[i % len(palette)], width=1.5),
-                opacity=0.7,
-                showlegend=False,
-                hovertemplate=f"<b>{country}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
-            ))
+st.plotly_chart(fig, use_container_width=True)
 
-    fig.update_layout(
-        height=560,
-        xaxis=dict(
-            title=None,
-            categoryorder="array",
-            categoryarray=PERIOD_ORDER,
-            tickmode="array",
-            tickvals=LABELED_TICKS,
-            ticktext=LABELED_TICKS,
-            tickangle=0,
-        ),
-        yaxis=dict(title="Study permits issued", range=[0, y_max] if not compare_mode else None),
-        hovermode="closest",
-        showlegend=False,
-        margin=dict(l=0, r=110, t=45, b=0),
-        plot_bgcolor="white",
-        paper_bgcolor="white",
-    )
-    fig.update_xaxes(showgrid=False)
-    fig.update_yaxes(gridcolor="#eeeeee")
+# ── Country selector (below chart) ───────────────────────────────────────────
 
-    st.plotly_chart(fig, use_container_width=True)
+st.caption("Select up to 5 countries to compare — overrides the group view. Deselect all to go back.")
+event = st.dataframe(
+    sel_table,
+    use_container_width=True,
+    height=320,
+    on_select="rerun",
+    selection_mode="multi-row",
+)
+raw_rows   = event.selection.rows
+valid_rows = [i for i in raw_rows if i < len(sel_table)]
+new_selection = [sel_table.index[i] for i in valid_rows[:5]]
+if len(raw_rows) > 5:
+    st.caption("⚠️ Only the first 5 plotted.")
+
+if new_selection != st.session_state.selected_countries:
+    st.session_state.selected_countries = new_selection
+    st.rerun()
 
 
 # ── YTD expander ──────────────────────────────────────────────────────────────
