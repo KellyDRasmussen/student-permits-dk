@@ -1,0 +1,806 @@
+STATSB,OPHOLD,TID,INDHOLD
+Stateless,"Study etc., education",2021,5
+Stateless,"Study etc., interns",2021,1
+Albania,"Study etc., education",2021,6
+Albania,"Study etc., interns",2021,8
+Albania,"Study etc., other reasons",2021,1
+Belgium,"Study etc., other reasons",2021,3
+France,"Study etc., other reasons",2021,3
+Greece,"Study etc., other reasons",2021,1
+Netherlands,"Study etc., other reasons",2021,3
+Ireland,"Study etc., education",2021,1
+Ireland,"Study etc., other reasons",2021,1
+Italy,"Study etc., au pair",2021,1
+Italy,"Study etc., other reasons",2021,4
+Poland,"Study etc., other reasons",2021,2
+Portugal,"Study etc., other reasons",2021,2
+Romania,"Study etc., other reasons",2021,2
+Spain,"Study etc., other reasons",2021,2
+United Kingdom,"Study etc., education",2021,202
+United Kingdom,"Study etc., au pair",2021,2
+United Kingdom,"Study etc., interns",2021,17
+United Kingdom,"Study etc., other reasons",2021,16
+Turkey,"Study etc., education",2021,91
+Turkey,"Study etc., interns",2021,29
+Turkey,"Study etc., other reasons",2021,59
+Germany,"Study etc., au pair",2021,1
+Germany,"Study etc., other reasons",2021,7
+Austria,"Study etc., other reasons",2021,3
+Algeria,"Study etc., education",2021,4
+Botswana,"Study etc., education",2021,1
+Ethiopia,"Study etc., education",2021,6
+Ethiopia,"Study etc., au pair",2021,1
+Ethiopia,"Study etc., other reasons",2021,2
+Ghana,"Study etc., education",2021,28
+Ghana,"Study etc., au pair",2021,1
+Ghana,"Study etc., interns",2021,3
+Ghana,"Study etc., other reasons",2021,3
+Kenya,"Study etc., education",2021,18
+Kenya,"Study etc., au pair",2021,12
+Kenya,"Study etc., other reasons",2021,2
+Lesotho,"Study etc., interns",2021,1
+Liberia,"Study etc., education",2021,1
+Mozambique,"Study etc., education",2021,3
+Madagascar,"Study etc., education",2021,2
+Madagascar,"Study etc., au pair",2021,1
+Morocco,"Study etc., education",2021,12
+Morocco,"Study etc., interns",2021,3
+Nigeria,"Study etc., education",2021,22
+Nigeria,"Study etc., au pair",2021,5
+Nigeria,"Study etc., interns",2021,1
+Nigeria,"Study etc., other reasons",2021,9
+Sierra Leone,"Study etc., education",2021,1
+Sierra Leone,"Study etc., interns",2021,1
+Sudan,"Study etc., education",2021,2
+Eswantini,"Study etc., education",2021,1
+South Africa,"Study etc., education",2021,12
+South Africa,"Study etc., au pair",2021,5
+South Africa,"Study etc., interns",2021,2
+South Africa,"Study etc., other reasons",2021,1
+Tanzania,"Study etc., education",2021,3
+Tanzania,"Study etc., other reasons",2021,1
+Tunisia,"Study etc., education",2021,3
+Tunisia,"Study etc., interns",2021,6
+Tunisia,"Study etc., other reasons",2021,2
+Uganda,"Study etc., education",2021,4
+Uganda,"Study etc., interns",2021,81
+Egypt,"Study etc., education",2021,19
+Egypt,"Study etc., interns",2021,2
+Egypt,"Study etc., other reasons",2021,19
+Cameroon,"Study etc., education",2021,24
+Cameroon,"Study etc., other reasons",2021,6
+"Congo, Democratic Republic","Study etc., education",2021,4
+"Congo, Democratic Republic","Study etc., other reasons",2021,5
+Ivory Coast,"Study etc., education",2021,1
+Rwanda,"Study etc., education",2021,2
+Rwanda,"Study etc., interns",2021,1
+Senegal,"Study etc., education",2021,1
+Somalia,"Study etc., education",2021,1
+Burkina Faso,"Study etc., education",2021,1
+Burkina Faso,"Study etc., au pair",2021,1
+Zimbabwe,"Study etc., education",2021,5
+Zimbabwe,"Study etc., interns",2021,2
+Zambia,"Study etc., education",2021,4
+Zambia,"Study etc., au pair",2021,2
+Zambia,"Study etc., interns",2021,1
+Argentina,"Study etc., education",2021,20
+Argentina,"Study etc., au pair",2021,16
+Argentina,"Study etc., interns",2021,4
+Argentina,"Study etc., other reasons",2021,4
+Bolivia,"Study etc., education",2021,3
+Bolivia,"Study etc., au pair",2021,1
+Bolivia,"Study etc., other reasons",2021,1
+Brazil,"Study etc., education",2021,91
+Brazil,"Study etc., au pair",2021,12
+Brazil,"Study etc., interns",2021,41
+Brazil,"Study etc., other reasons",2021,12
+Antigua and Barbuda,"Study etc., interns",2021,1
+Canada,"Study etc., education",2021,86
+Canada,"Study etc., interns",2021,9
+Canada,"Study etc., other reasons",2021,6
+Chile,"Study etc., education",2021,33
+Chile,"Study etc., au pair",2021,2
+Chile,"Study etc., interns",2021,1
+Chile,"Study etc., other reasons",2021,16
+Colombia,"Study etc., education",2021,59
+Colombia,"Study etc., au pair",2021,9
+Colombia,"Study etc., interns",2021,14
+Colombia,"Study etc., other reasons",2021,5
+Costa Rica,"Study etc., education",2021,12
+Costa Rica,"Study etc., other reasons",2021,3
+Cuba,"Study etc., education",2021,2
+Dominican Republic,"Study etc., education",2021,3
+Ecuador,"Study etc., education",2021,8
+Ecuador,"Study etc., other reasons",2021,1
+Guatemala,"Study etc., education",2021,10
+Honduras,"Study etc., education",2021,3
+Jamaica,"Study etc., education",2021,1
+Mexico,"Study etc., education",2021,150
+Mexico,"Study etc., au pair",2021,5
+Mexico,"Study etc., interns",2021,4
+Mexico,"Study etc., other reasons",2021,10
+Nicaragua,"Study etc., education",2021,1
+Panama,"Study etc., education",2021,1
+Panama,"Study etc., other reasons",2021,1
+Paraguay,"Study etc., education",2021,3
+Peru,"Study etc., education",2021,8
+Peru,"Study etc., au pair",2021,3
+El Salvador,"Study etc., education",2021,1
+Trinidad and Tobago,"Study etc., education",2021,1
+Uruguay,"Study etc., education",2021,2
+USA,"Study etc., education",2021,1239
+USA,"Study etc., au pair",2021,1
+USA,"Study etc., interns",2021,37
+USA,"Study etc., other reasons",2021,88
+Venezuela,"Study etc., education",2021,2
+Yemen,"Study etc., education",2021,4
+Afghanistan,"Study etc., education",2021,2
+Bhutan,"Study etc., education",2021,2
+Bangladesh,"Study etc., education",2021,201
+Bangladesh,"Study etc., interns",2021,10
+Bangladesh,"Study etc., other reasons",2021,93
+Cambodia,"Study etc., education",2021,4
+Sri Lanka,"Study etc., education",2021,10
+Sri Lanka,"Study etc., other reasons",2021,46
+Taiwan,"Study etc., education",2021,46
+Taiwan,"Study etc., interns",2021,3
+Taiwan,"Study etc., other reasons",2021,2
+Hong Kong,"Study etc., education",2021,5
+India,"Study etc., education",2021,330
+India,"Study etc., interns",2021,117
+India,"Study etc., other reasons",2021,88
+Indonesia,"Study etc., education",2021,30
+Indonesia,"Study etc., au pair",2021,10
+Indonesia,"Study etc., interns",2021,2
+Indonesia,"Study etc., other reasons",2021,5
+Iraq,"Study etc., education",2021,2
+Iraq,"Study etc., interns",2021,2
+Iraq,"Study etc., other reasons",2021,54
+Iran,"Study etc., education",2021,134
+Iran,"Study etc., interns",2021,4
+Iran,"Study etc., other reasons",2021,547
+Israel,"Study etc., education",2021,24
+Israel,"Study etc., other reasons",2021,3
+Japan,"Study etc., education",2021,258
+Japan,"Study etc., au pair",2021,2
+Japan,"Study etc., interns",2021,7
+Japan,"Study etc., other reasons",2021,8
+Jordan,"Study etc., education",2021,2
+Jordan,"Study etc., interns",2021,3
+China,"Study etc., education",2021,1016
+China,"Study etc., interns",2021,37
+China,"Study etc., other reasons",2021,35
+Kuwait,"Study etc., education",2021,1
+Lebanon,"Study etc., education",2021,15
+Lebanon,"Study etc., interns",2021,2
+Malaysia,"Study etc., education",2021,9
+Malaysia,"Study etc., au pair",2021,1
+Mongolia,"Study etc., education",2021,2
+Nepal,"Study etc., education",2021,444
+Nepal,"Study etc., au pair",2021,6
+Nepal,"Study etc., interns",2021,1
+Nepal,"Study etc., other reasons",2021,214
+Vietnam,"Study etc., education",2021,55
+Vietnam,"Study etc., au pair",2021,1
+Vietnam,"Study etc., interns",2021,158
+Vietnam,"Study etc., other reasons",2021,6
+Pakistan,"Study etc., education",2021,73
+Pakistan,"Study etc., interns",2021,3
+Pakistan,"Study etc., other reasons",2021,64
+Philippines,"Study etc., education",2021,21
+Philippines,"Study etc., au pair",2021,532
+Philippines,"Study etc., interns",2021,167
+Philippines,"Study etc., other reasons",2021,7
+Saudi Arabia,"Study etc., education",2021,5
+Saudi Arabia,"Study etc., interns",2021,1
+Saudi Arabia,"Study etc., other reasons",2021,1
+Singapore,"Study etc., education",2021,23
+Singapore,"Study etc., interns",2021,1
+South Korea,"Study etc., education",2021,56
+South Korea,"Study etc., interns",2021,10
+South Korea,"Study etc., other reasons",2021,7
+Syria,"Study etc., education",2021,4
+Syria,"Study etc., interns",2021,1
+Thailand,"Study etc., education",2021,78
+Thailand,"Study etc., au pair",2021,33
+Thailand,"Study etc., interns",2021,25
+Thailand,"Study etc., other reasons",2021,3
+Australia,"Study etc., education",2021,20
+Australia,"Study etc., interns",2021,7
+Australia,"Study etc., other reasons",2021,6
+New Zealand,"Study etc., education",2021,2
+New Zealand,"Study etc., interns",2021,2
+Latvia,"Study etc., education",2021,1
+Russia,"Study etc., education",2021,58
+Russia,"Study etc., au pair",2021,1
+Russia,"Study etc., interns",2021,11
+Russia,"Study etc., other reasons",2021,16
+Ukraine,"Study etc., education",2021,40
+Ukraine,"Study etc., au pair",2021,2
+Ukraine,"Study etc., interns",2021,1148
+Ukraine,"Study etc., other reasons",2021,6
+Belarus,"Study etc., education",2021,7
+Belarus,"Study etc., au pair",2021,1
+Belarus,"Study etc., interns",2021,2
+Armenia,"Study etc., other reasons",2021,1
+Azerbaijan,"Study etc., education",2021,4
+Azerbaijan,"Study etc., other reasons",2021,5
+Moldova,"Study etc., education",2021,5
+Moldova,"Study etc., interns",2021,1
+Uzbekistan,"Study etc., education",2021,3
+Uzbekistan,"Study etc., interns",2021,15
+Uzbekistan,"Study etc., other reasons",2021,3
+Kazakhstan,"Study etc., education",2021,8
+Kazakhstan,"Study etc., interns",2021,4
+Kazakhstan,"Study etc., other reasons",2021,2
+Turkmenistan,"Study etc., education",2021,1
+Kyrgyzstan,"Study etc., education",2021,1
+Kyrgyzstan,"Study etc., interns",2021,27
+Georgia,"Study etc., education",2021,4
+Bosnia and Herzegovina,"Study etc., education",2021,1
+Republic of North Macedonia,"Study etc., education",2021,2
+Republic of North Macedonia,"Study etc., interns",2021,2
+Serbia,"Study etc., education",2021,16
+Serbia,"Study etc., other reasons",2021,4
+Kosovo,"Study etc., education",2021,1
+Kosovo,"Study etc., interns",2021,2
+Czech Republic,"Study etc., other reasons",2021,3
+Slovakia,"Study etc., other reasons",2021,2
+Stateless,"Study etc., education",2022,5
+Stateless,"Study etc., interns",2022,1
+Stateless,"Study etc., other reasons",2022,2
+Albania,"Study etc., education",2022,8
+Albania,"Study etc., interns",2022,1
+Belgium,"Study etc., other reasons",2022,3
+Bulgaria,"Study etc., other reasons",2022,1
+France,"Study etc., other reasons",2022,12
+Greece,"Study etc., other reasons",2022,2
+Netherlands,"Study etc., other reasons",2022,3
+Ireland,"Study etc., education",2022,2
+Ireland,"Study etc., other reasons",2022,5
+Italy,"Study etc., other reasons",2022,9
+Poland,"Study etc., other reasons",2022,2
+Portugal,"Study etc., other reasons",2022,3
+Romania,"Study etc., other reasons",2022,2
+Switzerland,"Study etc., other reasons",2022,2
+Spain,"Study etc., other reasons",2022,8
+United Kingdom,"Study etc., education",2022,301
+United Kingdom,"Study etc., au pair",2022,2
+United Kingdom,"Study etc., interns",2022,24
+United Kingdom,"Study etc., other reasons",2022,12
+Turkey,"Study etc., education",2022,131
+Turkey,"Study etc., au pair",2022,1
+Turkey,"Study etc., interns",2022,36
+Turkey,"Study etc., other reasons",2022,72
+Hungary,"Study etc., other reasons",2022,2
+Germany,"Study etc., education",2022,1
+Germany,"Study etc., other reasons",2022,12
+Algeria,"Study etc., education",2022,5
+Algeria,"Study etc., interns",2022,1
+Botswana,"Study etc., education",2022,4
+Burundi,"Study etc., education",2022,1
+Ethiopia,"Study etc., education",2022,12
+Ethiopia,"Study etc., interns",2022,1
+Ethiopia,"Study etc., other reasons",2022,3
+"Gambia, The","Study etc., education",2022,1
+Ghana,"Study etc., education",2022,34
+Ghana,"Study etc., au pair",2022,1
+Ghana,"Study etc., interns",2022,1
+Ghana,"Study etc., other reasons",2022,3
+Kenya,"Study etc., education",2022,18
+Kenya,"Study etc., au pair",2022,10
+Kenya,"Study etc., interns",2022,4
+Kenya,"Study etc., other reasons",2022,2
+Liberia,"Study etc., education",2022,2
+Liberia,"Study etc., other reasons",2022,3
+Mozambique,"Study etc., education",2022,1
+Mozambique,"Study etc., au pair",2022,1
+Mozambique,"Study etc., interns",2022,1
+Morocco,"Study etc., education",2022,25
+Morocco,"Study etc., interns",2022,4
+Morocco,"Study etc., other reasons",2022,1
+Mauritius,"Study etc., education",2022,3
+Nigeria,"Study etc., education",2022,24
+Nigeria,"Study etc., au pair",2022,3
+Nigeria,"Study etc., interns",2022,2
+Nigeria,"Study etc., other reasons",2022,6
+Namibia,"Study etc., education",2022,4
+Namibia,"Study etc., au pair",2022,2
+Sierra Leone,"Study etc., education",2022,1
+Sudan,"Study etc., education",2022,1
+Eswantini,"Study etc., other reasons",2022,1
+South Sudan,"Study etc., interns",2022,1
+South Africa,"Study etc., education",2022,15
+South Africa,"Study etc., au pair",2022,9
+South Africa,"Study etc., interns",2022,13
+South Africa,"Study etc., other reasons",2022,1
+Tanzania,"Study etc., education",2022,3
+Tanzania,"Study etc., interns",2022,6
+Tunisia,"Study etc., education",2022,10
+Tunisia,"Study etc., interns",2022,2
+Tunisia,"Study etc., other reasons",2022,2
+Uganda,"Study etc., education",2022,11
+Uganda,"Study etc., au pair",2022,3
+Uganda,"Study etc., interns",2022,108
+Uganda,"Study etc., other reasons",2022,5
+Egypt,"Study etc., education",2022,24
+Egypt,"Study etc., interns",2022,5
+Egypt,"Study etc., other reasons",2022,11
+Cameroon,"Study etc., education",2022,25
+Cameroon,"Study etc., au pair",2022,2
+Cameroon,"Study etc., interns",2022,1
+Cameroon,"Study etc., other reasons",2022,23
+"Congo, Democratic Republic","Study etc., other reasons",2022,5
+Benin,"Study etc., education",2022,1
+Ivory Coast,"Study etc., interns",2022,1
+Rwanda,"Study etc., education",2022,5
+Zimbabwe,"Study etc., education",2022,9
+Zimbabwe,"Study etc., au pair",2022,1
+Zimbabwe,"Study etc., other reasons",2022,1
+Zambia,"Study etc., education",2022,6
+Zambia,"Study etc., au pair",2022,1
+Zambia,"Study etc., other reasons",2022,1
+Malawi,"Study etc., education",2022,4
+Malawi,"Study etc., other reasons",2022,2
+Argentina,"Study etc., education",2022,31
+Argentina,"Study etc., au pair",2022,4
+Argentina,"Study etc., interns",2022,1
+Argentina,"Study etc., other reasons",2022,81
+Bolivia,"Study etc., education",2022,5
+Bolivia,"Study etc., other reasons",2022,1
+Brazil,"Study etc., education",2022,169
+Brazil,"Study etc., au pair",2022,14
+Brazil,"Study etc., interns",2022,79
+Brazil,"Study etc., other reasons",2022,17
+Canada,"Study etc., education",2022,347
+Canada,"Study etc., au pair",2022,1
+Canada,"Study etc., interns",2022,16
+Canada,"Study etc., other reasons",2022,78
+Chile,"Study etc., education",2022,46
+Chile,"Study etc., au pair",2022,2
+Chile,"Study etc., interns",2022,1
+Chile,"Study etc., other reasons",2022,281
+Colombia,"Study etc., education",2022,75
+Colombia,"Study etc., au pair",2022,5
+Colombia,"Study etc., interns",2022,8
+Colombia,"Study etc., other reasons",2022,8
+Costa Rica,"Study etc., education",2022,17
+Costa Rica,"Study etc., interns",2022,1
+Costa Rica,"Study etc., other reasons",2022,5
+Cuba,"Study etc., education",2022,2
+Dominican Republic,"Study etc., education",2022,1
+Dominican Republic,"Study etc., au pair",2022,1
+Dominican Republic,"Study etc., interns",2022,1
+Ecuador,"Study etc., education",2022,17
+Ecuador,"Study etc., au pair",2022,1
+Ecuador,"Study etc., other reasons",2022,3
+Guatemala,"Study etc., education",2022,11
+Guatemala,"Study etc., au pair",2022,2
+Haiti,"Study etc., education",2022,1
+Haiti,"Study etc., interns",2022,1
+Dominica,"Study etc., education",2022,1
+Honduras,"Study etc., education",2022,2
+Honduras,"Study etc., interns",2022,1
+Honduras,"Study etc., other reasons",2022,1
+Jamaica,"Study etc., education",2022,3
+Mexico,"Study etc., education",2022,222
+Mexico,"Study etc., au pair",2022,12
+Mexico,"Study etc., interns",2022,22
+Mexico,"Study etc., other reasons",2022,9
+Nicaragua,"Study etc., education",2022,1
+Panama,"Study etc., education",2022,2
+Paraguay,"Study etc., education",2022,9
+Peru,"Study etc., education",2022,19
+Peru,"Study etc., au pair",2022,3
+Peru,"Study etc., other reasons",2022,1
+El Salvador,"Study etc., education",2022,8
+Uruguay,"Study etc., education",2022,4
+Uruguay,"Study etc., au pair",2022,1
+Uruguay,"Study etc., interns",2022,1
+Uruguay,"Study etc., other reasons",2022,1
+USA,"Study etc., education",2022,3118
+USA,"Study etc., au pair",2022,2
+USA,"Study etc., interns",2022,33
+USA,"Study etc., other reasons",2022,82
+Venezuela,"Study etc., education",2022,2
+Yemen,"Study etc., education",2022,4
+United Arab Emirates,"Study etc., education",2022,1
+Afghanistan,"Study etc., education",2022,4
+Afghanistan,"Study etc., other reasons",2022,1
+Bahrain,"Study etc., education",2022,1
+Bhutan,"Study etc., education",2022,1
+Bangladesh,"Study etc., education",2022,468
+Bangladesh,"Study etc., interns",2022,31
+Bangladesh,"Study etc., other reasons",2022,228
+Myanmar,"Study etc., education",2022,7
+Myanmar,"Study etc., other reasons",2022,1
+Cambodia,"Study etc., education",2022,4
+Sri Lanka,"Study etc., education",2022,10
+Sri Lanka,"Study etc., other reasons",2022,64
+Taiwan,"Study etc., education",2022,91
+Taiwan,"Study etc., interns",2022,4
+Taiwan,"Study etc., other reasons",2022,2
+Hong Kong,"Study etc., education",2022,8
+India,"Study etc., education",2022,519
+India,"Study etc., interns",2022,187
+India,"Study etc., other reasons",2022,147
+Indonesia,"Study etc., education",2022,51
+Indonesia,"Study etc., au pair",2022,9
+Indonesia,"Study etc., interns",2022,3
+Indonesia,"Study etc., other reasons",2022,9
+Iraq,"Study etc., education",2022,4
+Iraq,"Study etc., interns",2022,2
+Iraq,"Study etc., other reasons",2022,46
+Iran,"Study etc., education",2022,181
+Iran,"Study etc., au pair",2022,1
+Iran,"Study etc., interns",2022,12
+Iran,"Study etc., other reasons",2022,1192
+Israel,"Study etc., education",2022,29
+Israel,"Study etc., interns",2022,1
+Israel,"Study etc., other reasons",2022,1
+Japan,"Study etc., education",2022,466
+Japan,"Study etc., au pair",2022,1
+Japan,"Study etc., interns",2022,7
+Japan,"Study etc., other reasons",2022,121
+Jordan,"Study etc., education",2022,6
+Jordan,"Study etc., interns",2022,2
+China,"Study etc., education",2022,1181
+China,"Study etc., interns",2022,59
+China,"Study etc., other reasons",2022,53
+Laos,"Study etc., education",2022,1
+Lebanon,"Study etc., education",2022,19
+Lebanon,"Study etc., interns",2022,7
+Malaysia,"Study etc., education",2022,22
+Malaysia,"Study etc., interns",2022,2
+Malaysia,"Study etc., other reasons",2022,4
+Mongolia,"Study etc., education",2022,2
+Oman,"Study etc., education",2022,1
+Nepal,"Study etc., education",2022,664
+Nepal,"Study etc., au pair",2022,5
+Nepal,"Study etc., interns",2022,1
+Nepal,"Study etc., other reasons",2022,324
+Vietnam,"Study etc., education",2022,69
+Vietnam,"Study etc., au pair",2022,1
+Vietnam,"Study etc., interns",2022,365
+Vietnam,"Study etc., other reasons",2022,4
+Pakistan,"Study etc., education",2022,63
+Pakistan,"Study etc., interns",2022,9
+Pakistan,"Study etc., other reasons",2022,100
+Philippines,"Study etc., education",2022,27
+Philippines,"Study etc., au pair",2022,521
+Philippines,"Study etc., interns",2022,159
+Saudi Arabia,"Study etc., education",2022,2
+Saudi Arabia,"Study etc., interns",2022,1
+Saudi Arabia,"Study etc., other reasons",2022,2
+Singapore,"Study etc., education",2022,206
+Singapore,"Study etc., interns",2022,10
+Singapore,"Study etc., other reasons",2022,2
+South Korea,"Study etc., education",2022,170
+South Korea,"Study etc., interns",2022,8
+South Korea,"Study etc., other reasons",2022,46
+Syria,"Study etc., education",2022,5
+Syria,"Study etc., interns",2022,1
+Syria,"Study etc., other reasons",2022,5
+Thailand,"Study etc., education",2022,111
+Thailand,"Study etc., au pair",2022,49
+Thailand,"Study etc., interns",2022,32
+Thailand,"Study etc., other reasons",2022,11
+Australia,"Study etc., education",2022,295
+Australia,"Study etc., interns",2022,5
+Australia,"Study etc., other reasons",2022,98
+New Zealand,"Study etc., education",2022,26
+New Zealand,"Study etc., other reasons",2022,17
+Lithuania,"Study etc., other reasons",2022,1
+Russia,"Study etc., education",2022,78
+Russia,"Study etc., au pair",2022,1
+Russia,"Study etc., interns",2022,9
+Russia,"Study etc., other reasons",2022,25
+Ukraine,"Study etc., education",2022,42
+Ukraine,"Study etc., au pair",2022,4
+Ukraine,"Study etc., interns",2022,674
+Ukraine,"Study etc., other reasons",2022,7
+Belarus,"Study etc., education",2022,5
+Belarus,"Study etc., other reasons",2022,2
+Armenia,"Study etc., education",2022,3
+Armenia,"Study etc., other reasons",2022,1
+Azerbaijan,"Study etc., education",2022,15
+Azerbaijan,"Study etc., other reasons",2022,2
+Moldova,"Study etc., education",2022,5
+Uzbekistan,"Study etc., education",2022,7
+Uzbekistan,"Study etc., interns",2022,31
+Uzbekistan,"Study etc., other reasons",2022,3
+Kazakhstan,"Study etc., education",2022,3
+Turkmenistan,"Study etc., education",2022,1
+Kyrgyzstan,"Study etc., education",2022,3
+Kyrgyzstan,"Study etc., interns",2022,22
+Kyrgyzstan,"Study etc., other reasons",2022,1
+Tajikistan,"Study etc., interns",2022,1
+Georgia,"Study etc., education",2022,7
+Georgia,"Study etc., au pair",2022,1
+Slovenia,"Study etc., other reasons",2022,2
+Bosnia and Herzegovina,"Study etc., education",2022,2
+Bosnia and Herzegovina,"Study etc., other reasons",2022,1
+Republic of North Macedonia,"Study etc., education",2022,1
+Republic of North Macedonia,"Study etc., interns",2022,1
+Serbia,"Study etc., education",2022,11
+Serbia,"Study etc., au pair",2022,1
+Serbia,"Study etc., interns",2022,1
+Serbia,"Study etc., other reasons",2022,4
+Kosovo,"Study etc., education",2022,11
+Kosovo,"Study etc., interns",2022,3
+Czech Republic,"Study etc., other reasons",2022,1
+Not stated,"Study etc., education",2022,1
+Stateless,"Study etc., education",2023,4
+Albania,"Study etc., education",2023,12
+Albania,"Study etc., interns",2023,3
+Andorra,"Study etc., education",2023,1
+Belgium,"Study etc., other reasons",2023,1
+France,"Study etc., other reasons",2023,6
+Netherlands,"Study etc., other reasons",2023,1
+Italy,"Study etc., other reasons",2023,3
+Poland,"Study etc., other reasons",2023,2
+Portugal,"Study etc., other reasons",2023,1
+Spain,"Study etc., other reasons",2023,1
+United Kingdom,"Study etc., education",2023,247
+United Kingdom,"Study etc., au pair",2023,1
+United Kingdom,"Study etc., interns",2023,27
+United Kingdom,"Study etc., other reasons",2023,6
+Turkey,"Study etc., education",2023,114
+Turkey,"Study etc., interns",2023,32
+Turkey,"Study etc., other reasons",2023,64
+Germany,"Study etc., other reasons",2023,12
+Austria,"Study etc., other reasons",2023,1
+Algeria,"Study etc., education",2023,16
+Algeria,"Study etc., other reasons",2023,1
+Angola,"Study etc., education",2023,1
+Botswana,"Study etc., education",2023,1
+Botswana,"Study etc., other reasons",2023,2
+Ethiopia,"Study etc., education",2023,7
+Ethiopia,"Study etc., other reasons",2023,7
+"Gambia, The","Study etc., education",2023,2
+"Gambia, The","Study etc., other reasons",2023,2
+Ghana,"Study etc., education",2023,47
+Ghana,"Study etc., interns",2023,28
+Ghana,"Study etc., other reasons",2023,4
+Guinea,"Study etc., education",2023,1
+Cape Verde,"Study etc., education",2023,1
+Kenya,"Study etc., education",2023,31
+Kenya,"Study etc., au pair",2023,11
+Kenya,"Study etc., interns",2023,45
+Libya,"Study etc., education",2023,1
+Libya,"Study etc., other reasons",2023,3
+Madagascar,"Study etc., au pair",2023,2
+Morocco,"Study etc., education",2023,13
+Morocco,"Study etc., au pair",2023,1
+Morocco,"Study etc., interns",2023,2
+Morocco,"Study etc., other reasons",2023,1
+Mauritius,"Study etc., education",2023,1
+Nigeria,"Study etc., education",2023,31
+Nigeria,"Study etc., au pair",2023,2
+Nigeria,"Study etc., interns",2023,3
+Nigeria,"Study etc., other reasons",2023,15
+Namibia,"Study etc., au pair",2023,1
+Namibia,"Study etc., interns",2023,2
+Sierra Leone,"Study etc., education",2023,2
+Sudan,"Study etc., education",2023,5
+Sudan,"Study etc., interns",2023,1
+Sudan,"Study etc., other reasons",2023,1
+South Sudan,"Study etc., interns",2023,2
+South Africa,"Study etc., education",2023,15
+South Africa,"Study etc., au pair",2023,6
+South Africa,"Study etc., interns",2023,15
+Tanzania,"Study etc., education",2023,5
+Tanzania,"Study etc., interns",2023,251
+Tunisia,"Study etc., education",2023,8
+Tunisia,"Study etc., interns",2023,4
+Uganda,"Study etc., education",2023,14
+Uganda,"Study etc., au pair",2023,2
+Uganda,"Study etc., interns",2023,256
+Uganda,"Study etc., other reasons",2023,1
+Egypt,"Study etc., education",2023,17
+Egypt,"Study etc., interns",2023,8
+Egypt,"Study etc., other reasons",2023,8
+Cameroon,"Study etc., education",2023,29
+Cameroon,"Study etc., au pair",2023,2
+Cameroon,"Study etc., other reasons",2023,23
+"Congo, Democratic Republic","Study etc., education",2023,1
+"Congo, Democratic Republic","Study etc., other reasons",2023,9
+"Congo, Republic","Study etc., other reasons",2023,2
+Ivory Coast,"Study etc., education",2023,1
+Gabon,"Study etc., interns",2023,1
+Rwanda,"Study etc., education",2023,3
+Rwanda,"Study etc., interns",2023,1
+Senegal,"Study etc., education",2023,1
+Togo,"Study etc., education",2023,2
+Burkina Faso,"Study etc., education",2023,1
+Burkina Faso,"Study etc., interns",2023,1
+Zimbabwe,"Study etc., education",2023,5
+Zimbabwe,"Study etc., au pair",2023,2
+Zambia,"Study etc., education",2023,7
+Zambia,"Study etc., interns",2023,2
+Argentina,"Study etc., education",2023,37
+Argentina,"Study etc., au pair",2023,3
+Argentina,"Study etc., interns",2023,1
+Argentina,"Study etc., other reasons",2023,185
+Bahamas,"Study etc., education",2023,1
+Bolivia,"Study etc., education",2023,3
+Brazil,"Study etc., education",2023,133
+Brazil,"Study etc., au pair",2023,10
+Brazil,"Study etc., interns",2023,63
+Brazil,"Study etc., other reasons",2023,18
+Canada,"Study etc., education",2023,342
+Canada,"Study etc., interns",2023,15
+Canada,"Study etc., other reasons",2023,65
+Chile,"Study etc., education",2023,42
+Chile,"Study etc., interns",2023,10
+Chile,"Study etc., other reasons",2023,152
+Colombia,"Study etc., education",2023,63
+Colombia,"Study etc., au pair",2023,1
+Colombia,"Study etc., interns",2023,4
+Colombia,"Study etc., other reasons",2023,11
+Costa Rica,"Study etc., education",2023,15
+Costa Rica,"Study etc., interns",2023,2
+Costa Rica,"Study etc., other reasons",2023,5
+Cuba,"Study etc., education",2023,1
+Cuba,"Study etc., other reasons",2023,1
+Dominican Republic,"Study etc., education",2023,3
+Ecuador,"Study etc., education",2023,15
+Ecuador,"Study etc., interns",2023,3
+Ecuador,"Study etc., other reasons",2023,2
+Guatemala,"Study etc., education",2023,10
+Guatemala,"Study etc., other reasons",2023,1
+Grenada,"Study etc., education",2023,1
+Dominica,"Study etc., education",2023,1
+Saint Lucia,"Study etc., education",2023,1
+Honduras,"Study etc., education",2023,3
+Jamaica,"Study etc., interns",2023,1
+Mexico,"Study etc., education",2023,236
+Mexico,"Study etc., au pair",2023,1
+Mexico,"Study etc., interns",2023,20
+Mexico,"Study etc., other reasons",2023,10
+Nicaragua,"Study etc., education",2023,1
+Nicaragua,"Study etc., au pair",2023,1
+Panama,"Study etc., education",2023,2
+Paraguay,"Study etc., education",2023,10
+Paraguay,"Study etc., interns",2023,1
+Paraguay,"Study etc., other reasons",2023,1
+Peru,"Study etc., education",2023,17
+Peru,"Study etc., au pair",2023,5
+Peru,"Study etc., interns",2023,1
+Peru,"Study etc., other reasons",2023,2
+El Salvador,"Study etc., education",2023,1
+Trinidad and Tobago,"Study etc., other reasons",2023,1
+Uruguay,"Study etc., education",2023,3
+USA,"Study etc., education",2023,3299
+USA,"Study etc., au pair",2023,2
+USA,"Study etc., interns",2023,57
+USA,"Study etc., other reasons",2023,101
+Venezuela,"Study etc., education",2023,2
+Venezuela,"Study etc., other reasons",2023,2
+Yemen,"Study etc., interns",2023,1
+Yemen,"Study etc., other reasons",2023,1
+United Arab Emirates,"Study etc., education",2023,1
+Afghanistan,"Study etc., other reasons",2023,5
+Bhutan,"Study etc., education",2023,2
+Bhutan,"Study etc., other reasons",2023,1
+Bangladesh,"Study etc., education",2023,1027
+Bangladesh,"Study etc., interns",2023,55
+Bangladesh,"Study etc., other reasons",2023,561
+Myanmar,"Study etc., education",2023,4
+Cambodia,"Study etc., education",2023,2
+Cambodia,"Study etc., au pair",2023,1
+Cambodia,"Study etc., interns",2023,3
+Sri Lanka,"Study etc., education",2023,22
+Sri Lanka,"Study etc., interns",2023,6
+Sri Lanka,"Study etc., other reasons",2023,205
+Taiwan,"Study etc., education",2023,68
+Taiwan,"Study etc., interns",2023,3
+Taiwan,"Study etc., other reasons",2023,4
+India,"Study etc., education",2023,489
+India,"Study etc., interns",2023,256
+India,"Study etc., other reasons",2023,143
+Indonesia,"Study etc., education",2023,65
+Indonesia,"Study etc., au pair",2023,6
+Indonesia,"Study etc., interns",2023,2
+Indonesia,"Study etc., other reasons",2023,18
+Iraq,"Study etc., interns",2023,2
+Iraq,"Study etc., other reasons",2023,60
+Iran,"Study etc., education",2023,165
+Iran,"Study etc., interns",2023,10
+Iran,"Study etc., other reasons",2023,2503
+Israel,"Study etc., education",2023,28
+Israel,"Study etc., other reasons",2023,1
+Japan,"Study etc., education",2023,441
+Japan,"Study etc., au pair",2023,1
+Japan,"Study etc., interns",2023,8
+Japan,"Study etc., other reasons",2023,201
+Jordan,"Study etc., education",2023,3
+China,"Study etc., education",2023,1277
+China,"Study etc., au pair",2023,1
+China,"Study etc., interns",2023,66
+China,"Study etc., other reasons",2023,43
+Lebanon,"Study etc., education",2023,11
+Lebanon,"Study etc., interns",2023,4
+Lebanon,"Study etc., other reasons",2023,6
+Maldives,"Study etc., education",2023,1
+Malaysia,"Study etc., education",2023,28
+Malaysia,"Study etc., interns",2023,3
+Mongolia,"Study etc., education",2023,3
+Nepal,"Study etc., education",2023,1088
+Nepal,"Study etc., au pair",2023,8
+Nepal,"Study etc., interns",2023,12
+Nepal,"Study etc., other reasons",2023,690
+Vietnam,"Study etc., education",2023,61
+Vietnam,"Study etc., au pair",2023,1
+Vietnam,"Study etc., interns",2023,506
+Vietnam,"Study etc., other reasons",2023,8
+Pakistan,"Study etc., education",2023,103
+Pakistan,"Study etc., interns",2023,5
+Pakistan,"Study etc., other reasons",2023,306
+Philippines,"Study etc., education",2023,23
+Philippines,"Study etc., au pair",2023,431
+Philippines,"Study etc., interns",2023,99
+Philippines,"Study etc., other reasons",2023,15
+Saudi Arabia,"Study etc., education",2023,2
+Singapore,"Study etc., education",2023,193
+Singapore,"Study etc., interns",2023,9
+Singapore,"Study etc., other reasons",2023,1
+South Korea,"Study etc., education",2023,155
+South Korea,"Study etc., interns",2023,28
+South Korea,"Study etc., other reasons",2023,44
+Syria,"Study etc., education",2023,7
+Syria,"Study etc., other reasons",2023,1
+Thailand,"Study etc., education",2023,75
+Thailand,"Study etc., au pair",2023,28
+Thailand,"Study etc., interns",2023,41
+Thailand,"Study etc., other reasons",2023,10
+Australia,"Study etc., education",2023,432
+Australia,"Study etc., interns",2023,9
+Australia,"Study etc., other reasons",2023,179
+New Zealand,"Study etc., education",2023,62
+New Zealand,"Study etc., interns",2023,2
+New Zealand,"Study etc., other reasons",2023,20
+Belize,"Study etc., education",2023,2
+Sao Tome and Principe,"Study etc., education",2023,1
+Russia,"Study etc., education",2023,46
+Russia,"Study etc., au pair",2023,1
+Russia,"Study etc., interns",2023,7
+Russia,"Study etc., other reasons",2023,15
+Ukraine,"Study etc., education",2023,39
+Ukraine,"Study etc., au pair",2023,1
+Ukraine,"Study etc., interns",2023,40
+Ukraine,"Study etc., other reasons",2023,3
+Belarus,"Study etc., education",2023,6
+Belarus,"Study etc., interns",2023,1
+Belarus,"Study etc., other reasons",2023,2
+Armenia,"Study etc., education",2023,6
+Azerbaijan,"Study etc., education",2023,17
+Azerbaijan,"Study etc., interns",2023,1
+Azerbaijan,"Study etc., other reasons",2023,4
+Moldova,"Study etc., au pair",2023,1
+Moldova,"Study etc., other reasons",2023,1
+Uzbekistan,"Study etc., education",2023,5
+Uzbekistan,"Study etc., interns",2023,45
+Uzbekistan,"Study etc., other reasons",2023,1
+Kazakhstan,"Study etc., education",2023,13
+Turkmenistan,"Study etc., other reasons",2023,1
+Kyrgyzstan,"Study etc., education",2023,2
+Kyrgyzstan,"Study etc., interns",2023,17
+Tajikistan,"Study etc., education",2023,1
+Georgia,"Study etc., education",2023,16
+Georgia,"Study etc., interns",2023,4
+Georgia,"Study etc., other reasons",2023,1
+Croatia,"Study etc., other reasons",2023,1
+Slovenia,"Study etc., other reasons",2023,1
+Bosnia and Herzegovina,"Study etc., education",2023,3
+Bosnia and Herzegovina,"Study etc., other reasons",2023,3
+Republic of North Macedonia,"Study etc., education",2023,1
+Republic of North Macedonia,"Study etc., other reasons",2023,4
+Serbia,"Study etc., education",2023,18
+Serbia,"Study etc., interns",2023,2
+Serbia,"Study etc., other reasons",2023,4
+Montenegro,"Study etc., education",2023,1
+Montenegro,"Study etc., interns",2023,1
+Kosovo,"Study etc., education",2023,4
+Kosovo,"Study etc., interns",2023,1
+Kosovo,"Study etc., other reasons",2023,3

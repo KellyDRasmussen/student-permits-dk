@@ -1,0 +1,380 @@
+import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+from pathlib import Path
+from countries import DIMENSIONS, get_group
+
+ANNUAL_PATH  = Path(__file__).parent / "data" / "van66_raw.csv"
+MONTHLY_PATH = Path(__file__).parent / "data" / "van77m_raw.csv"
+
+MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+def _month_label(code):
+    year, m = code.split("M")
+    return f"{MONTH_NAMES[int(m)-1]} '{year[2:]}"
+
+ANNUAL_PERIODS = ["2021", "2022", "2023"]
+MONTHLY_CODES  = (
+    [f"2024M{m:02d}" for m in range(1, 13)] +
+    [f"2025M{m:02d}" for m in range(1, 13)] +
+    [f"2026M{m:02d}" for m in range(1, 6)]
+)
+MONTHLY_LABELS = {c: _month_label(c) for c in MONTHLY_CODES}
+PERIOD_ORDER   = ANNUAL_PERIODS + [MONTHLY_LABELS[c] for c in MONTHLY_CODES]
+BREAK_AT       = len(ANNUAL_PERIODS) - 0.5
+JAN_TICKS      = [MONTHLY_LABELS[f"{y}M01"] for y in [2024, 2025, 2026]]
+LABELED_TICKS  = ANNUAL_PERIODS + JAN_TICKS
+
+EDUCATION_ONLY = "Study etc., education"
+OKABE_ITO      = ["#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#F0E442", "#000000"]
+AGG_COLORS     = ["#0072B2", "#D55E00"]
+
+st.set_page_config(layout="wide", page_title="Student permits — Denmark")
+
+
+# ── Data loading ──────────────────────────────────────────────────────────────
+
+@st.cache_data
+def load_raw():
+    return pd.read_csv(ANNUAL_PATH), pd.read_csv(MONTHLY_PATH)
+
+
+@st.cache_data
+def build_dataset(_annual_raw, _monthly_raw, education_only):
+    annual_raw  = _annual_raw.copy()
+    monthly_raw = _monthly_raw.copy()
+    if education_only:
+        annual_raw  = annual_raw[annual_raw["OPHOLD"]  == EDUCATION_ONLY]
+        monthly_raw = monthly_raw[monthly_raw["OPHOLD"] == EDUCATION_ONLY]
+
+    annual = (
+        annual_raw.groupby(["STATSB", "TID"])["INDHOLD"].sum()
+        .reset_index()
+        .rename(columns={"STATSB": "country", "TID": "year", "INDHOLD": "permits"})
+    )
+    annual["period"]      = annual["year"].astype(str)
+    annual["period_type"] = "annual"
+
+    monthly = (
+        monthly_raw.groupby(["STATSB", "TID"])["INDHOLD"].sum()
+        .reset_index()
+        .rename(columns={"STATSB": "country", "TID": "month_code", "INDHOLD": "permits"})
+    )
+    monthly["period"]      = monthly["month_code"].map(MONTHLY_LABELS)
+    monthly["period_type"] = "monthly"
+
+    combined = pd.concat(
+        [annual[["country", "period", "period_type", "permits"]],
+         monthly[["country", "period", "period_type", "permits"]]],
+        ignore_index=True,
+    )
+    combined["period"] = pd.Categorical(
+        combined["period"], categories=PERIOD_ORDER, ordered=True
+    )
+    for dim in DIMENSIONS:
+        col = dim.split(" / ")[0].lower().replace(" ", "_")
+        combined[col] = combined["country"].apply(lambda c: get_group(c, dim))
+    return combined
+
+
+@st.cache_data
+def compute_y_max(_annual_raw, _monthly_raw, education_only):
+    df = build_dataset(_annual_raw, _monthly_raw, education_only)
+    individual_max = df["permits"].max()
+    agg_max = max(
+        df.groupby([dim.split(" / ")[0].lower().replace(" ", "_"), "period"])["permits"]
+        .sum().max()
+        for dim in DIMENSIONS
+    )
+    return max(individual_max, agg_max) * 1.08
+
+
+@st.cache_data
+def build_selection_table(_annual_raw, _monthly_raw, education_only):
+    """Jan-May comparison table used for country selection."""
+    df = build_dataset(_annual_raw, _monthly_raw, education_only)
+    monthly = df[df["period_type"] == "monthly"].copy()
+    monthly["month_num"] = monthly["period"].astype(str).apply(
+        lambda p: MONTH_NAMES.index(p.split(" ")[0]) + 1
+    )
+    monthly["yr"] = monthly["period"].astype(str).apply(
+        lambda p: "'24" if "'24" in p else ("'25" if "'25" in p else "'26")
+    )
+    ytd = (
+        monthly[monthly["month_num"] <= 5]
+        .groupby(["country", "yr"])["permits"].sum()
+        .unstack("yr").fillna(0).astype(int)
+        .reindex(columns=["'24", "'25", "'26"], fill_value=0)
+        .rename(columns={"'24": "Jan–May '24", "'25": "Jan–May '25", "'26": "Jan–May '26"})
+    )
+    ytd["Δ '25→'26"] = (
+        ((ytd["Jan–May '26"] - ytd["Jan–May '25"]) / ytd["Jan–May '25"].replace(0, pd.NA) * 100)
+        .round(0)
+        .fillna(0)
+        .astype(int)
+        .astype(str) + "%"
+    )
+    ytd = ytd[ytd[["Jan–May '24", "Jan–May '25", "Jan–May '26"]].sum(axis=1) > 0]
+    return ytd.sort_values("Jan–May '25", ascending=False)
+
+
+# ── Sidebar ───────────────────────────────────────────────────────────────────
+
+with st.sidebar:
+    st.title("Student permits")
+    st.caption("VAN66 annual 2021–2023  ·  VAN77M monthly Jan 2024 – May 2026")
+
+    if not all(p.exists() for p in (ANNUAL_PATH, MONTHLY_PATH)):
+        st.error("Run `python fetch_data.py` first.")
+        st.stop()
+
+    if st.button("↻ Reload data"):
+        st.cache_data.clear()
+        st.rerun()
+
+    st.divider()
+
+    permit_type = st.radio(
+        "Permit type",
+        options=["All study types", "Education only"],
+        index=0,
+        horizontal=True,
+        help=(
+            "**Education only** matches the ministry's 'ca. 50' in the June 2026 press release."
+        ),
+    )
+    education_only = permit_type == "Education only"
+
+    st.divider()
+
+    dimension = st.selectbox(
+        "Group countries by",
+        options=["Show all"] + list(DIMENSIONS.keys()),
+        index=0,
+    )
+
+    if dimension != "Show all":
+        label_in, label_out, _ = DIMENSIONS[dimension]
+        side = st.radio(
+            "Show",
+            options=[label_in, label_out, "Both"],
+            index=2,
+            horizontal=True,
+        )
+    else:
+        side = "Both"
+
+    aggregate_mode = dimension != "Show all" and side == "Both"
+
+    st.divider()
+
+    if not aggregate_mode:
+        min_permits = st.slider(
+            "Min permits in best annual year",
+            min_value=0, max_value=500, value=50, step=10,
+        )
+    else:
+        min_permits = 0
+        st.caption("Showing group totals — individual threshold not applied.")
+
+
+# ── Load data ─────────────────────────────────────────────────────────────────
+
+try:
+    annual_raw, monthly_raw = load_raw()
+except FileNotFoundError:
+    st.error("Run `python fetch_data.py` first.")
+    st.stop()
+
+df_all = build_dataset(annual_raw, monthly_raw, education_only)
+y_max  = compute_y_max(annual_raw, monthly_raw, education_only)
+sel_table = build_selection_table(annual_raw, monthly_raw, education_only)
+
+# Apply group / threshold filters for the group view
+df = df_all.copy()
+if dimension != "Show all" and not aggregate_mode:
+    col = dimension.split(" / ")[0].lower().replace(" ", "_")
+    if side == label_in:
+        df = df[df[col] == label_in]
+    elif side == label_out:
+        df = df[df[col] == label_out]
+
+if not aggregate_mode and min_permits > 0:
+    peak = df[df["period_type"] == "annual"].groupby("country")["permits"].max()
+    df = df[df["country"].isin(peak[peak >= min_permits].index)]
+
+
+# ── Metrics ───────────────────────────────────────────────────────────────────
+
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Permit type", "Education only" if education_only else "All study types")
+for country, col_widget in [("Nepal", c3), ("Bangladesh", c4)]:
+    cdf = df_all[df_all["country"] == country].set_index("period")["permits"]
+    if not cdf.empty:
+        jan24 = int(cdf.get("Jan '24", 0))
+        may26 = int(cdf.get("May '26", 0))
+        col_widget.metric(
+            f"{country}: Jan '24 → May '26",
+            f"{jan24:,} → {may26:,}",
+            delta=f"{may26 - jan24:+,}",
+            delta_color="inverse",
+        )
+
+st.divider()
+
+
+# ── Main area: selection table (left) + chart (right) ────────────────────────
+
+col_sel, col_chart = st.columns([1, 2.8])
+
+# ── Left: selection table ─────────────────────────────────────────────────────
+with col_sel:
+    st.caption("Select up to 5 countries to compare — clears the group view.")
+    event = st.dataframe(
+        sel_table,
+        use_container_width=True,
+        height=530,
+        on_select="rerun",
+        selection_mode="multi-row",
+    )
+    raw_rows = event.selection.rows
+    selected_countries = [sel_table.index[i] for i in raw_rows[:5]]
+    if len(raw_rows) > 5:
+        st.caption("⚠️ Only the first 5 selections are plotted.")
+
+# ── Right: chart ──────────────────────────────────────────────────────────────
+with col_chart:
+
+    compare_mode = len(selected_countries) > 0
+
+    fig = go.Figure()
+
+    # Background shading + break line
+    fig.add_shape(
+        type="rect", x0=BREAK_AT, x1=len(PERIOD_ORDER) - 0.5, y0=0, y1=1,
+        xref="x", yref="paper", fillcolor="rgba(210,225,255,0.2)",
+        line=dict(width=0), layer="below",
+    )
+    fig.add_shape(
+        type="line", x0=BREAK_AT, x1=BREAK_AT, y0=0, y1=1,
+        xref="x", yref="paper",
+        line=dict(color="rgba(80,80,80,0.35)", width=1.5, dash="dash"),
+    )
+    fig.add_annotation(
+        x=1, y=1.06, xref="x", yref="paper",
+        text="← Annual", showarrow=False, font=dict(size=11, color="#888"), xanchor="center",
+    )
+    fig.add_annotation(
+        x=BREAK_AT + 14, y=1.06, xref="x", yref="paper",
+        text="Monthly →", showarrow=False, font=dict(size=11, color="#888"), xanchor="center",
+    )
+    for jan_label in JAN_TICKS:
+        idx = PERIOD_ORDER.index(jan_label)
+        fig.add_shape(
+            type="line", x0=idx, x1=idx, y0=0, y1=1, xref="x", yref="paper",
+            line=dict(color="rgba(150,150,150,0.2)", width=1), layer="below",
+        )
+
+    if compare_mode:
+        # ── Up to 5 selected countries, individually labelled ─────────────────
+        for i, country in enumerate(selected_countries):
+            cdf = df_all[df_all["country"] == country].sort_values("period")
+            if cdf.empty:
+                continue
+            color = OKABE_ITO[i % len(OKABE_ITO)]
+            texts = [""] * len(cdf)
+            texts[-1] = country
+            fig.add_trace(go.Scatter(
+                x=cdf["period"].astype(str),
+                y=cdf["permits"],
+                mode="lines+markers+text",
+                name=country,
+                text=texts,
+                textposition="middle right",
+                textfont=dict(size=11, color=color),
+                line=dict(color=color, width=2.5),
+                marker=dict(size=5),
+                showlegend=False,
+                hovertemplate=f"<b>{country}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
+            ))
+
+    elif aggregate_mode:
+        # ── Two group-total lines ─────────────────────────────────────────────
+        dim_col = dimension.split(" / ")[0].lower().replace(" ", "_")
+        group_agg = (
+            df_all.groupby([dim_col, "period"])["permits"].sum()
+            .reset_index().rename(columns={dim_col: "grp"})
+        )
+        group_agg["period"] = pd.Categorical(
+            group_agg["period"], categories=PERIOD_ORDER, ordered=True
+        )
+        for i, grp_label in enumerate([label_in, label_out]):
+            gdf = group_agg[group_agg["grp"] == grp_label].sort_values("period")
+            if gdf.empty:
+                continue
+            color = AGG_COLORS[i]
+            texts = [""] * len(gdf)
+            texts[-1] = grp_label
+            fig.add_trace(go.Scatter(
+                x=gdf["period"].astype(str),
+                y=gdf["permits"],
+                mode="lines+text",
+                name=grp_label,
+                text=texts,
+                textposition="middle right",
+                textfont=dict(size=12, color=color),
+                line=dict(color=color, width=2.5),
+                showlegend=False,
+                hovertemplate=f"<b>{grp_label}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
+            ))
+
+    else:
+        # ── Individual country lines (group/threshold view) ───────────────────
+        palette = px.colors.qualitative.Safe
+        for i, country in enumerate(sorted(df["country"].unique())):
+            cdf = df[df["country"] == country].sort_values("period")
+            fig.add_trace(go.Scatter(
+                x=cdf["period"].astype(str),
+                y=cdf["permits"],
+                mode="lines",
+                name=country,
+                line=dict(color=palette[i % len(palette)], width=1.5),
+                opacity=0.7,
+                showlegend=False,
+                hovertemplate=f"<b>{country}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
+            ))
+
+    fig.update_layout(
+        height=560,
+        xaxis=dict(
+            title=None,
+            categoryorder="array",
+            categoryarray=PERIOD_ORDER,
+            tickmode="array",
+            tickvals=LABELED_TICKS,
+            ticktext=LABELED_TICKS,
+            tickangle=0,
+        ),
+        yaxis=dict(title="Study permits issued", range=[0, y_max] if not compare_mode else None),
+        hovermode="closest",
+        showlegend=False,
+        margin=dict(l=0, r=110, t=45, b=0),
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+    )
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(gridcolor="#eeeeee")
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
+# ── YTD expander ──────────────────────────────────────────────────────────────
+
+with st.expander("Jan–May year-on-year"):
+    if education_only:
+        st.caption("Education only — Nepal + Bangladesh '26 total should match the ministry's 'ca. 50'.")
+    else:
+        st.caption("All study types — switch to 'Education only' to reproduce the ministry's figure.")
+    st.dataframe(sel_table, use_container_width=True)
