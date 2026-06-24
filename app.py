@@ -79,22 +79,18 @@ def build_dataset(_annual_raw, _monthly_raw, education_only):
     return combined
 
 
-@st.cache_data
-def compute_y_max(_annual_raw, _monthly_raw, education_only):
-    df = build_dataset(_annual_raw, _monthly_raw, education_only)
+def compute_y_max(df):
     individual_max = df["permits"].max()
     agg_max = max(
-        df.groupby([dim.split(" / ")[0].lower().replace(" ", "_"), "period"])["permits"]
-        .sum().max()
+        df.groupby([dim.split(" / ")[0].lower().replace(" ", "_"), "period"],
+                   observed=True)["permits"].sum().max()
         for dim in DIMENSIONS
     )
-    return max(individual_max, agg_max) * 1.08
+    return float(max(individual_max, agg_max)) * 1.08
 
 
-@st.cache_data
-def build_selection_table(_annual_raw, _monthly_raw, education_only):
-    """Jan-May comparison table used for country selection."""
-    df = build_dataset(_annual_raw, _monthly_raw, education_only)
+def build_selection_table(df):
+    """Jan–May comparison table derived from the already-built dataset."""
     monthly = df[df["period_type"] == "monthly"].copy()
     monthly["month_num"] = monthly["period"].astype(str).apply(
         lambda p: MONTH_NAMES.index(p.split(" ")[0]) + 1
@@ -104,20 +100,16 @@ def build_selection_table(_annual_raw, _monthly_raw, education_only):
     )
     ytd = (
         monthly[monthly["month_num"] <= 5]
-        .groupby(["country", "yr"])["permits"].sum()
+        .groupby(["country", "yr"], observed=True)["permits"].sum()
         .unstack("yr").fillna(0).astype(int)
         .reindex(columns=["'24", "'25", "'26"], fill_value=0)
         .rename(columns={"'24": "Jan–May '24", "'25": "Jan–May '25", "'26": "Jan–May '26"})
     )
-    ytd["Δ '25→'26"] = (
-        ((ytd["Jan–May '26"] - ytd["Jan–May '25"]) / ytd["Jan–May '25"].replace(0, pd.NA) * 100)
-        .round(0)
-        .fillna(0)
-        .astype(int)
-        .astype(str) + "%"
-    )
-    ytd = ytd[ytd[["Jan–May '24", "Jan–May '25", "Jan–May '26"]].sum(axis=1) > 0]
-    return ytd.sort_values("Jan–May '25", ascending=False)
+    with_data = ytd[ytd[["Jan–May '24", "Jan–May '25", "Jan–May '26"]].sum(axis=1) > 0].copy()
+    prev = with_data["Jan–May '25"].replace(0, pd.NA)
+    pct  = ((with_data["Jan–May '26"] - with_data["Jan–May '25"]) / prev * 100).round(0)
+    with_data["Δ '25→'26"] = pct.fillna(0).astype(int).astype(str) + "%"
+    return with_data.sort_values("Jan–May '25", ascending=False)
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -188,9 +180,9 @@ except FileNotFoundError:
     st.error("Run `python fetch_data.py` first.")
     st.stop()
 
-df_all = build_dataset(annual_raw, monthly_raw, education_only)
-y_max  = compute_y_max(annual_raw, monthly_raw, education_only)
-sel_table = build_selection_table(annual_raw, monthly_raw, education_only)
+df_all    = build_dataset(annual_raw, monthly_raw, education_only)
+y_max     = compute_y_max(df_all)
+sel_table = build_selection_table(df_all)
 
 # Apply group / threshold filters for the group view
 df = df_all.copy()
@@ -211,10 +203,13 @@ if not aggregate_mode and min_permits > 0:
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Permit type", "Education only" if education_only else "All study types")
 for country, col_widget in [("Nepal", c3), ("Bangladesh", c4)]:
-    cdf = df_all[df_all["country"] == country].set_index("period")["permits"]
+    cdf = df_all[df_all["country"] == country]
     if not cdf.empty:
-        jan24 = int(cdf.get("Jan '24", 0))
-        may26 = int(cdf.get("May '26", 0))
+        def _val(period):
+            row = cdf[cdf["period"].astype(str) == period]["permits"]
+            return int(row.iloc[0]) if len(row) else 0
+        jan24 = _val("Jan '24")
+        may26 = _val("May '26")
         col_widget.metric(
             f"{country}: Jan '24 → May '26",
             f"{jan24:,} → {may26:,}",
@@ -240,7 +235,8 @@ with col_sel:
         selection_mode="multi-row",
     )
     raw_rows = event.selection.rows
-    selected_countries = [sel_table.index[i] for i in raw_rows[:5]]
+    valid_rows = [i for i in raw_rows if i < len(sel_table)]
+    selected_countries = [sel_table.index[i] for i in valid_rows[:5]]
     if len(raw_rows) > 5:
         st.caption("⚠️ Only the first 5 selections are plotted.")
 
