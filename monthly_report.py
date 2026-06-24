@@ -67,7 +67,8 @@ def analyse(monthly):
     # Year-on-year for countries that had ≥10 permits last year
     yoy = pd.DataFrame({"now": this, "last_year": last_y}).fillna(0)
     yoy["change"] = yoy["now"] - yoy["last_year"]
-    yoy["pct"]    = (yoy["change"] / yoy["last_year"].replace(0, pd.NA) * 100).round(1)
+    last = yoy["last_year"].astype(float)
+    yoy["pct"] = (yoy["change"].astype(float) / last.where(last > 0, 1.0) * 100).where(last > 0, 0.0).round(1)
     yoy_min10     = yoy[yoy["last_year"] >= 10]
 
     top5_now    = this.sort_values(ascending=False).head(5)
