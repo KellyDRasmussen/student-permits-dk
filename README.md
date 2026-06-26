@@ -4,6 +4,8 @@ A Streamlit app for exploring residence permit data for third-country students i
 
 The data shows the fall is real. It also shows it isn't confined to Nepal and Bangladesh.
 
+Built by [Kelly Rasmussen](https://github.com/KellyDRasmussen) for [Fair & Fornuftig](https://fairogfornuftig.dk).
+
 ## Data
 
 - **VAN66** (Statistics Denmark) — annual residence permits by citizenship and type, 2021–2023
