@@ -182,9 +182,8 @@ except FileNotFoundError:
     st.error("Run `python fetch_data.py` first.")
     st.stop()
 
-df_all    = build_dataset(annual_raw, monthly_raw, education_only)
-y_max     = compute_y_max(df_all)
-sel_table = build_selection_table(df_all)
+df_all = build_dataset(annual_raw, monthly_raw, education_only)
+y_max  = compute_y_max(df_all)
 
 if "selected_countries" not in st.session_state:
     st.session_state.selected_countries = []
@@ -204,32 +203,56 @@ if not aggregate_mode and min_permits > 0:
     peak = df[df["period_type"] == "annual"].groupby("country")["permits"].max()
     df = df[df["country"].isin(peak[peak >= min_permits].index)]
 
+# Table uses dimension/side filter but not the threshold, so all countries in
+# the selected group are selectable even if they fall below the chart threshold.
+df_table = df_all.copy()
+if dimension != "Show all" and not aggregate_mode:
+    _tcol = dimension.split(" / ")[0].lower().replace(" ", "_")
+    df_table = df_table[df_table[_tcol] == side]
+sel_table = build_selection_table(df_table)
+
+# Drop any prior selections that are no longer visible in the current table view.
+selected_countries = [c for c in selected_countries if c in sel_table.index]
+compare_mode = len(selected_countries) > 0
+
 
 # ── Metrics ───────────────────────────────────────────────────────────────────
 
+def _range_metric(col_widget, label, df_periods):
+    def _val(p):
+        row = df_periods[df_periods["period"].astype(str) == p]["permits"]
+        return int(row.sum()) if len(row) else 0
+    jan24, may26 = _val("Jan '24"), _val("May '26")
+    col_widget.metric(
+        f"{label}: Jan '24 → May '26",
+        f"{jan24:,} → {may26:,}",
+        delta=f"{may26 - jan24:+,}",
+        delta_color="inverse",
+    )
+
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Permit type", "Education only" if education_only else "All study types")
-for country, col_widget in [("Nepal", c3), ("Bangladesh", c4)]:
-    cdf = df_all[df_all["country"] == country]
-    if not cdf.empty:
-        def _val(period):
-            row = cdf[cdf["period"].astype(str) == period]["permits"]
-            return int(row.iloc[0]) if len(row) else 0
-        jan24 = _val("Jan '24")
-        may26 = _val("May '26")
-        col_widget.metric(
-            f"{country}: Jan '24 → May '26",
-            f"{jan24:,} → {may26:,}",
-            delta=f"{may26 - jan24:+,}",
-            delta_color="inverse",
-        )
+dynamic_cols = [c2, c3, c4]
+
+if compare_mode:
+    for i, country in enumerate(selected_countries[:3]):
+        _range_metric(dynamic_cols[i], country, df_all[df_all["country"] == country])
+elif dimension != "Show all":
+    dim_col = dimension.split(" / ")[0].lower().replace(" ", "_")
+    group_totals = (
+        df_all.groupby([dim_col, "period"], observed=True)["permits"].sum()
+        .reset_index().rename(columns={dim_col: "grp"})
+    )
+    if aggregate_mode:
+        for i, grp in enumerate([label_in, label_out]):
+            _range_metric(dynamic_cols[i], grp, group_totals[group_totals["grp"] == grp])
+    else:
+        _range_metric(dynamic_cols[0], side, group_totals[group_totals["grp"] == side])
 
 st.divider()
 
 
 # ── Chart (full width) ────────────────────────────────────────────────────────
-
-compare_mode = len(selected_countries) > 0
 
 fig = go.Figure()
 
@@ -354,6 +377,20 @@ st.plotly_chart(fig, use_container_width=True)
 # ── Country selector (below chart) ───────────────────────────────────────────
 
 st.caption("Select up to 5 countries to compare — overrides the group view. Deselect all to go back.")
+
+if compare_mode:
+    swatches = "&emsp;".join(
+        f'<span style="color:{OKABE_ITO[i % len(OKABE_ITO)]};font-size:1.2em">■</span> {c}'
+        for i, c in enumerate(selected_countries)
+    )
+    st.markdown(swatches, unsafe_allow_html=True)
+elif aggregate_mode:
+    swatches = "&emsp;".join(
+        f'<span style="color:{AGG_COLORS[j]};font-size:1.2em">■</span> {lbl}'
+        for j, lbl in enumerate([label_in, label_out])
+    )
+    st.markdown(swatches, unsafe_allow_html=True)
+
 event = st.dataframe(
     sel_table,
     use_container_width=True,
