@@ -232,12 +232,7 @@ sel_table = build_selection_table(df_table)
 selected_countries = [c for c in selected_countries if c in sel_table.index]
 compare_mode = len(selected_countries) > 0
 
-display_table = sel_table.copy()
-if compare_mode:
-    subset = sel_table.loc[selected_countries, ["Jan–May '24", "Jan–May '25", "Jan–May '26"]]
-    t24, t25, t26 = int(subset["Jan–May '24"].sum()), int(subset["Jan–May '25"].sum()), int(subset["Jan–May '26"].sum())
-    t_pct = round((t26 - t25) / t25 * 100) if t25 > 0 else 0
-    display_table.loc["Total"] = [t24, t25, t26, f"{t_pct}%"]
+display_table = sel_table
 
 
 # ── Metrics ───────────────────────────────────────────────────────────────────
@@ -459,6 +454,13 @@ valid_rows = [i for i in raw_rows if i < len(display_table)]
 new_selection = [display_table.index[i] for i in valid_rows if display_table.index[i] != "Total"][:5]
 if len(raw_rows) > 5:
     st.caption("⚠️ Only the first 5 plotted.")
+
+if compare_mode:
+    subset = sel_table.loc[selected_countries, ["Jan–May '24", "Jan–May '25", "Jan–May '26"]]
+    t24, t25, t26 = int(subset["Jan–May '24"].sum()), int(subset["Jan–May '25"].sum()), int(subset["Jan–May '26"].sum())
+    t_pct = round((t26 - t25) / t25 * 100) if t25 > 0 else 0
+    names = " + ".join(selected_countries)
+    st.caption(f"Selected total — {names}: {t25:,} → {t26:,} ({t_pct:+}%)")
 
 if new_selection != st.session_state.selected_countries:
     st.session_state.selected_countries = new_selection
