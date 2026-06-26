@@ -385,7 +385,7 @@ fig.update_layout(
         tickmode="array",
         tickvals=LABELED_TICKS,
         ticktext=LABELED_TICKS,
-        tickangle=0,
+        tickangle=45,
         tickfont=dict(color="#444"),
         automargin=True,
     ),
@@ -396,7 +396,7 @@ fig.update_layout(
     ),
     hovermode="closest",
     showlegend=False,
-    margin=dict(l=0, r=110, t=45, b=35),
+    margin=dict(l=0, r=110, t=45, b=55),
     plot_bgcolor="white",
     paper_bgcolor="white",
 )
