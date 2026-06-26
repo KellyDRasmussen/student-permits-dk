@@ -236,14 +236,20 @@ compare_mode = len(selected_countries) > 0
 # ── Metrics ───────────────────────────────────────────────────────────────────
 
 def _range_metric(col_widget, label, df_periods):
-    def _val(p):
-        row = df_periods[df_periods["period"].astype(str) == p]["permits"]
-        return int(row.sum()) if len(row) else 0
-    jan24, may26 = _val("Jan '24"), _val("May '26")
+    monthly = df_periods[df_periods["period_type"] == "monthly"].copy()
+    monthly["month_num"] = monthly["period"].astype(str).apply(
+        lambda p: MONTH_NAMES.index(p.split(" ")[0]) + 1
+    )
+    monthly["yr"] = monthly["period"].astype(str).apply(
+        lambda p: "'25" if "'25" in str(p) else ("'26" if "'26" in str(p) else "other")
+    )
+    ytd = monthly[monthly["month_num"] <= 5].groupby("yr", observed=True)["permits"].sum()
+    v25 = int(ytd.get("'25", 0))
+    v26 = int(ytd.get("'26", 0))
     col_widget.metric(
-        f"{label}: Jan '24 → May '26",
-        f"{jan24:,} → {may26:,}",
-        delta=f"{may26 - jan24:+,}",
+        f"{label}: Jan–May '25 vs '26",
+        f"{v25:,} → {v26:,}",
+        delta=f"{v26 - v25:+,}",
         delta_color="inverse",
     )
 
