@@ -448,6 +448,7 @@ event = st.dataframe(
     height=320,
     on_select="rerun",
     selection_mode="multi-row",
+    key="country_selector",
 )
 raw_rows   = event.selection.rows
 valid_rows = [i for i in raw_rows if i < len(display_table)]
