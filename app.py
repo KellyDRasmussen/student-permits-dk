@@ -115,7 +115,17 @@ def build_selection_table(df):
     change = (with_data["Jan–May '26"] - with_data["Jan–May '25"]).astype(float)
     pct = (change / prev.where(prev > 0, 1.0) * 100).where(prev > 0, 0.0)
     with_data["Δ '25→'26"] = pct.round(0).astype(int).astype(str) + "%"
-    return with_data.sort_values("Jan–May '25", ascending=False)
+    sorted_data = with_data.sort_values("Jan–May '25", ascending=False)
+
+    t24 = int(sorted_data["Jan–May '24"].sum())
+    t25 = int(sorted_data["Jan–May '25"].sum())
+    t26 = int(sorted_data["Jan–May '26"].sum())
+    t_pct = round((t26 - t25) / t25 * 100) if t25 > 0 else 0
+    total = pd.DataFrame(
+        [{"Jan–May '24": t24, "Jan–May '25": t25, "Jan–May '26": t26, "Δ '25→'26": f"{t_pct}%"}],
+        index=["Total"],
+    )
+    return pd.concat([sorted_data, total])
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -431,7 +441,7 @@ event = st.dataframe(
 )
 raw_rows   = event.selection.rows
 valid_rows = [i for i in raw_rows if i < len(sel_table)]
-new_selection = [sel_table.index[i] for i in valid_rows[:5]]
+new_selection = [sel_table.index[i] for i in valid_rows if sel_table.index[i] != "Total"][:5]
 if len(raw_rows) > 5:
     st.caption("⚠️ Only the first 5 plotted.")
 
