@@ -235,8 +235,10 @@ compare_mode = len(selected_countries) > 0
 
 # ── Metrics ───────────────────────────────────────────────────────────────────
 
+_monthly_label_set = set(MONTHLY_LABELS.values())
+
 def _range_metric(col_widget, label, df_periods):
-    monthly = df_periods[df_periods["period_type"] == "monthly"].copy()
+    monthly = df_periods[df_periods["period"].astype(str).isin(_monthly_label_set)].copy()
     monthly["month_num"] = monthly["period"].astype(str).apply(
         lambda p: MONTH_NAMES.index(p.split(" ")[0]) + 1
     )
@@ -419,7 +421,7 @@ fig.update_layout(
 fig.update_xaxes(showgrid=False)
 fig.update_yaxes(gridcolor="#eeeeee")
 
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width='stretch')
 
 # ── Country selector (below chart) ───────────────────────────────────────────
 
@@ -440,7 +442,7 @@ elif aggregate_mode:
 
 event = st.dataframe(
     sel_table,
-    use_container_width=True,
+    width='stretch',
     height=320,
     on_select="rerun",
     selection_mode="multi-row",
