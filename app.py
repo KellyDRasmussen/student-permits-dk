@@ -16,15 +16,20 @@ def _month_label(code):
     return f"{MONTH_NAMES[int(m)-1]} '{year[2:]}"
 
 ANNUAL_PERIODS = ["2021", "2022", "2023"]
-MONTHLY_CODES  = (
-    [f"2024M{m:02d}" for m in range(1, 13)] +
-    [f"2025M{m:02d}" for m in range(1, 13)] +
-    [f"2026M{m:02d}" for m in range(1, 6)]
-)
+
+def _monthly_codes_from_csv():
+    try:
+        tids = pd.read_csv(MONTHLY_PATH, usecols=["TID"])["TID"].dropna().unique()
+        return sorted(t for t in tids if isinstance(t, str) and "M" in t)
+    except Exception:
+        return [f"2024M{m:02d}" for m in range(1, 13)]
+
+MONTHLY_CODES  = _monthly_codes_from_csv()
 MONTHLY_LABELS = {c: _month_label(c) for c in MONTHLY_CODES}
 PERIOD_ORDER   = ANNUAL_PERIODS + [MONTHLY_LABELS[c] for c in MONTHLY_CODES]
 BREAK_AT       = len(ANNUAL_PERIODS) - 0.5
-JAN_TICKS      = [MONTHLY_LABELS[f"{y}M01"] for y in [2024, 2025, 2026]]
+_years_present = sorted({c[:4] for c in MONTHLY_CODES})
+JAN_TICKS      = [MONTHLY_LABELS[f"{y}M01"] for y in _years_present if f"{y}M01" in MONTHLY_LABELS]
 LABELED_TICKS  = ANNUAL_PERIODS + JAN_TICKS
 
 EDUCATION_ONLY = "Study etc., education"
@@ -117,7 +122,8 @@ def build_selection_table(df):
 
 with st.sidebar:
     st.title("Student permits")
-    st.caption("VAN66 annual 2021–2023  ·  VAN77M monthly Jan 2024 – May 2026")
+    _monthly_range = f"{MONTHLY_LABELS[MONTHLY_CODES[0]]} – {MONTHLY_LABELS[MONTHLY_CODES[-1]]}" if MONTHLY_CODES else "—"
+    st.caption(f"VAN66 annual 2021–2023  ·  VAN77M monthly {_monthly_range}")
 
     if not all(p.exists() for p in (ANNUAL_PATH, MONTHLY_PATH)):
         st.error("Run `python fetch_data.py` first.")
@@ -270,6 +276,22 @@ fig.add_shape(
     xref="x", yref="paper",
     line=dict(color="rgba(80,80,80,0.35)", width=1.5, dash="dash"),
 )
+_may25_label = MONTHLY_LABELS.get("2025M05")
+_may25_idx   = PERIOD_ORDER.index(_may25_label) if _may25_label and _may25_label in PERIOD_ORDER else None
+if _may25_idx is not None:
+    fig.add_shape(
+        type="line", x0=_may25_idx, x1=_may25_idx, y0=0, y1=1,
+        xref="x", yref="paper",
+        line=dict(color="rgba(120,40,40,0.18)", width=1, dash="dot"),
+        layer="below",
+    )
+    fig.add_annotation(
+        x=_may25_idx + 0.3, y=0.97, xref="x", yref="paper",
+        text="policy tightening", showarrow=False,
+        font=dict(size=8, color="rgba(120,40,40,0.35)"),
+        xanchor="left", yanchor="top", textangle=-90,
+    )
+
 fig.add_annotation(
     x=1, y=1.06, xref="x", yref="paper",
     text="← Annual", showarrow=False, font=dict(size=11, color="#888"), xanchor="center",
@@ -410,13 +432,3 @@ if len(raw_rows) > 5:
 if new_selection != st.session_state.selected_countries:
     st.session_state.selected_countries = new_selection
     st.rerun()
-
-
-# ── YTD expander ──────────────────────────────────────────────────────────────
-
-with st.expander("Jan–May year-on-year"):
-    if education_only:
-        st.caption("Education only — Nepal + Bangladesh '26 total should match the ministry's 'ca. 50'.")
-    else:
-        st.caption("All study types — switch to 'Education only' to reproduce the ministry's figure.")
-    st.dataframe(sel_table, use_container_width=True)
