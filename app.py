@@ -203,12 +203,13 @@ if not aggregate_mode and min_permits > 0:
     peak = df[df["period_type"] == "annual"].groupby("country")["permits"].max()
     df = df[df["country"].isin(peak[peak >= min_permits].index)]
 
-# Table uses dimension/side filter but not the threshold, so all countries in
-# the selected group are selectable even if they fall below the chart threshold.
 df_table = df_all.copy()
 if dimension != "Show all" and not aggregate_mode:
     _tcol = dimension.split(" / ")[0].lower().replace(" ", "_")
     df_table = df_table[df_table[_tcol] == side]
+if not aggregate_mode and min_permits > 0:
+    _peak = df_table[df_table["period_type"] == "annual"].groupby("country")["permits"].max()
+    df_table = df_table[df_table["country"].isin(_peak[_peak >= min_permits].index)]
 sel_table = build_selection_table(df_table)
 
 # Drop any prior selections that are no longer visible in the current table view.
