@@ -231,13 +231,10 @@ def _range_metric(col_widget, label, df_periods):
         delta_color="inverse",
     )
 
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Permit type", "Education only" if education_only else "All study types")
-dynamic_cols = [c2, c3, c4]
-
+dynamic_metrics = []
 if compare_mode:
-    for i, country in enumerate(selected_countries[:3]):
-        _range_metric(dynamic_cols[i], country, df_all[df_all["country"] == country])
+    for country in selected_countries[:3]:
+        dynamic_metrics.append((country, df_all[df_all["country"] == country]))
 elif dimension != "Show all":
     dim_col = dimension.split(" / ")[0].lower().replace(" ", "_")
     group_totals = (
@@ -245,10 +242,15 @@ elif dimension != "Show all":
         .reset_index().rename(columns={dim_col: "grp"})
     )
     if aggregate_mode:
-        for i, grp in enumerate([label_in, label_out]):
-            _range_metric(dynamic_cols[i], grp, group_totals[group_totals["grp"] == grp])
+        for grp in [label_in, label_out]:
+            dynamic_metrics.append((grp, group_totals[group_totals["grp"] == grp]))
     else:
-        _range_metric(dynamic_cols[0], side, group_totals[group_totals["grp"] == side])
+        dynamic_metrics.append((side, group_totals[group_totals["grp"] == side]))
+
+metric_cols = st.columns(max(2, 1 + len(dynamic_metrics)))
+metric_cols[0].metric("Permit type", "Education only" if education_only else "All study types")
+for i, (label, df_m) in enumerate(dynamic_metrics):
+    _range_metric(metric_cols[i + 1], label, df_m)
 
 st.divider()
 
