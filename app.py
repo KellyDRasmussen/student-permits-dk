@@ -232,6 +232,12 @@ sel_table = build_selection_table(df_table)
 selected_countries = [c for c in selected_countries if c in sel_table.index]
 compare_mode = len(selected_countries) > 0
 
+if compare_mode:
+    subset = sel_table.loc[selected_countries, ["Jan–May '24", "Jan–May '25", "Jan–May '26"]]
+    t24, t25, t26 = int(subset["Jan–May '24"].sum()), int(subset["Jan–May '25"].sum()), int(subset["Jan–May '26"].sum())
+    t_pct = round((t26 - t25) / t25 * 100) if t25 > 0 else 0
+    sel_table.loc["Total"] = [t24, t25, t26, f"{t_pct}%"]
+
 
 # ── Metrics ───────────────────────────────────────────────────────────────────
 
