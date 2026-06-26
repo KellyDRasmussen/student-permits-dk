@@ -114,7 +114,7 @@ def build_selection_table(df):
     prev = with_data["Jan–May '25"].astype(float)
     change = (with_data["Jan–May '26"] - with_data["Jan–May '25"]).astype(float)
     pct = (change / prev.where(prev > 0, 1.0) * 100).where(prev > 0, 0.0)
-    with_data["Δ '25→'26"] = pct.round(0).astype(int).astype(str) + "%"
+    with_data["Δ '25→'26"] = pct.round(0).astype(int)
     sorted_data = with_data.sort_values("Jan–May '25", ascending=False)
 
     t24 = int(sorted_data["Jan–May '24"].sum())
@@ -122,7 +122,7 @@ def build_selection_table(df):
     t26 = int(sorted_data["Jan–May '26"].sum())
     t_pct = round((t26 - t25) / t25 * 100) if t25 > 0 else 0
     total = pd.DataFrame(
-        [{"Jan–May '24": t24, "Jan–May '25": t25, "Jan–May '26": t26, "Δ '25→'26": f"{t_pct}%"}],
+        [{"Jan–May '24": t24, "Jan–May '25": t25, "Jan–May '26": t26, "Δ '25→'26": t_pct}],
         index=["Total"],
     )
     return pd.concat([sorted_data, total])
@@ -449,6 +449,7 @@ event = st.dataframe(
     on_select="rerun",
     selection_mode="multi-row",
     key="country_selector",
+    column_config={"Δ '25→'26": st.column_config.NumberColumn("Δ '25→'26", format="%+d%%")},
 )
 raw_rows   = event.selection.rows
 valid_rows = [i for i in raw_rows if i < len(display_table)]
