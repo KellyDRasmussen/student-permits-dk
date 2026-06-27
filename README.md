@@ -8,12 +8,20 @@ Built by [Kelly Rasmussen](https://github.com/KellyDRasmussen) for [Fair & Fornu
 
 ## Data
 
-- **VAN66** (Statistics Denmark) — annual residence permits by citizenship and type, 2021–2023
-- **VAN77M** (Statistics Denmark) — monthly residence permits by citizenship and type, Jan 2024–present
+All figures are derived from Statistics Denmark (Danmarks Statistik) via [statbank.dk](https://www.statbank.dk).
 
-Both tables cover four study permit categories: education, au pair, interns, and other reasons. The ministry's headline "ca. 50" figure uses education-only; the app lets you toggle between that and the full picture.
+| Table | Coverage | Granularity |
+|-------|----------|-------------|
+| **VAN66** | Residence permits by citizenship and permit type | Annual, 2021–2023 |
+| **VAN77M** | Residence permits by citizenship and permit type | Monthly, Jan 2024–present |
 
-Country groupings (G7, G20, Global North/South, Western/Non-Western) follow Statistics Denmark's own definitions where they exist. The Western/Non-Western split uses the Danish statistical definition: EU27 + EEA/European microstates + Canada, USA, Australia, New Zealand.
+Both tables cover four study permit categories: education, au pair, interns, and other reasons. The ministry's headline figure uses education-only; the app lets you toggle between that and the full picture.
+
+Data is fetched in BULK format from the Statbank API and stored as CSV in `data/`. Run `fetch_data.py` to refresh.
+
+### Country groupings
+
+Country groupings (G7, G20, Global North/South, Western/Non-Western) follow Statistics Denmark's own definitions where they exist. The Western/Non-Western split uses the Danish statistical definition: EU27 + EEA/European microstates + Canada, USA, Australia, and New Zealand. Grouping logic lives in `countries.py`.
 
 ## Running locally
 

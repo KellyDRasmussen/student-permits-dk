@@ -467,3 +467,6 @@ if compare_mode:
 if new_selection != st.session_state.selected_countries:
     st.session_state.selected_countries = new_selection
     st.rerun()
+
+st.markdown("---")
+st.caption("Source: Statistics Denmark — VAN66 (annual, 2021–2023) and VAN77M (monthly, Jan 2024–present). statbank.dk")
