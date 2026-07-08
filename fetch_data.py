@@ -2,39 +2,12 @@ import requests
 import pandas as pd
 import io
 import os
-from datetime import date
 
 API_URL = "https://api.statbank.dk/v1/data"
 STUDY_CODES = ["10", "101", "102", "103"]
 
-MONTHLY_START_YEAR = 2024
-MONTHLY_START_MONTH = 1
-
-
-def _latest_available_month(today=None):
-    # Statistics Denmark publishes VAN77M for month M roughly 3 weeks after
-    # month end, so the newest safely-available month is last month.
-    today = today or date.today()
-    year, month = today.year, today.month - 1
-    if month == 0:
-        year, month = year - 1, 12
-    return year, month
-
-
-def _month_range(start_year, start_month, end_year, end_month):
-    periods = []
-    y, m = start_year, start_month
-    while (y, m) <= (end_year, end_month):
-        periods.append(f"{y}M{m:02d}")
-        m += 1
-        if m > 12:
-            y, m = y + 1, 1
-    return periods
-
-
-_END_YEAR, _END_MONTH = _latest_available_month()
-ANNUAL_YEARS = [str(y) for y in range(2021, _END_YEAR)]  # full completed years only
-MONTHLY_PERIODS = _month_range(MONTHLY_START_YEAR, MONTHLY_START_MONTH, _END_YEAR, _END_MONTH)
+ANNUAL_START_YEAR = 2021
+MONTHLY_START_PERIOD = "2024M01"
 
 
 def _get(table, variables):
@@ -53,19 +26,25 @@ def _get(table, variables):
 
 
 def fetch_annual():
-    return _get("VAN66", [
+    # "*" pulls every year Statbank has published; trim to the window we care about
+    # so we don't drag in decades of history we never use.
+    df = _get("VAN66", [
         {"code": "STATSB", "values": ["*"]},
         {"code": "OPHOLD", "values": STUDY_CODES},
-        {"code": "Tid", "values": ANNUAL_YEARS},
+        {"code": "Tid", "values": ["*"]},
     ])
+    return df[df["TID"] >= ANNUAL_START_YEAR]
 
 
 def fetch_monthly():
-    return _get("VAN77M", [
+    # "*" self-corrects to whatever's actually published, whatever Statbank's
+    # real lag turns out to be, rather than guessing a fixed offset from today.
+    df = _get("VAN77M", [
         {"code": "STATSB", "values": ["*"]},
         {"code": "OPHOLD", "values": STUDY_CODES},
-        {"code": "Tid", "values": MONTHLY_PERIODS},
+        {"code": "Tid", "values": ["*"]},
     ])
+    return df[df["TID"] >= MONTHLY_START_PERIOD]
 
 
 if __name__ == "__main__":
