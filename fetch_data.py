@@ -2,15 +2,39 @@ import requests
 import pandas as pd
 import io
 import os
+from datetime import date
 
 API_URL = "https://api.statbank.dk/v1/data"
 STUDY_CODES = ["10", "101", "102", "103"]
-ANNUAL_YEARS = [str(y) for y in range(2021, 2024)]   # 2021-2023
-MONTHLY_PERIODS = (
-    [f"2024M{m:02d}" for m in range(1, 13)] +
-    [f"2025M{m:02d}" for m in range(1, 13)] +
-    [f"2026M{m:02d}" for m in range(1, 6)]
-)
+
+MONTHLY_START_YEAR = 2024
+MONTHLY_START_MONTH = 1
+
+
+def _latest_available_month(today=None):
+    # Statistics Denmark publishes VAN77M for month M roughly 3 weeks after
+    # month end, so the newest safely-available month is last month.
+    today = today or date.today()
+    year, month = today.year, today.month - 1
+    if month == 0:
+        year, month = year - 1, 12
+    return year, month
+
+
+def _month_range(start_year, start_month, end_year, end_month):
+    periods = []
+    y, m = start_year, start_month
+    while (y, m) <= (end_year, end_month):
+        periods.append(f"{y}M{m:02d}")
+        m += 1
+        if m > 12:
+            y, m = y + 1, 1
+    return periods
+
+
+_END_YEAR, _END_MONTH = _latest_available_month()
+ANNUAL_YEARS = [str(y) for y in range(2021, _END_YEAR)]  # full completed years only
+MONTHLY_PERIODS = _month_range(MONTHLY_START_YEAR, MONTHLY_START_MONTH, _END_YEAR, _END_MONTH)
 
 
 def _get(table, variables):
