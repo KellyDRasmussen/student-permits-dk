@@ -1,176 +1,207 @@
 """
 monthly_report.py — analyse latest student permit data and post to Slack.
 Called by .github/workflows/monthly-refresh.yml after fetch_data.py runs.
+
+All analysis is education-permit-only (OPHOLD == "Study etc., education") —
+that's the category the ministry's press release used, and the one that
+maps onto "student" in the ordinary sense (as opposed to au pair/intern/
+other-reasons permits, which are different routes entirely).
+
+Every section is built by comparing against a rolling window, so the
+report changes with the data each month rather than reprinting the same
+fixed sections with updated numbers.
 """
 
 import os
-from datetime import datetime
 
 import pandas as pd
 import requests
+
+from countries import WESTERN
 
 SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
 
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-# Countries to spotlight in the "collateral damage" section
-WATCH_LIST = ["Nepal", "Bangladesh", "China", "India", "Canada", "USA", "Pakistan", "Turkey"]
+# Tightening measures for third-country students were introduced May 2025 —
+# see README. Everything before this is the "pre-tightening baseline".
+POLICY_START = "2025M05"
 
-# G7 for a quick Western-country check
-G7 = {"Canada", "France", "Germany", "Italy", "Japan", "United Kingdom", "USA"}
+# The ministry's June 2026 press release was specifically about these two.
+PRESS_RELEASE_COUNTRIES = ["Nepal", "Bangladesh"]
+
+# Trailing windows for the "is this broad or targeted" comparison.
+# 12 months avoids conflating the policy effect with normal intake
+# seasonality (permit issuance clusters around Aug/Jan academic starts).
+# 3 months is shown alongside as a caveated directional signal only.
+TRAILING_SEASONAL_SAFE = 12
+TRAILING_RAW = 3
+
+# Minimum total permits during the pre-policy period for a country to be
+# included in the collateral-impact leaderboard/aggregate — keeps single-
+# digit-a-year countries from dominating a %-change ranking on noise.
+MIN_BASELINE_SUM = 30
+
+# Minimum year-ago count for a country to be included in the monthly
+# shock scan, same reasoning.
+MIN_YOY_BASE = 5
+
+LEADERBOARD_SIZE = 5
+SHOCK_LIST_SIZE = 5
 
 
-def month_label(code):
-    year, m = code.split("M")
-    return f"{MONTH_NAMES[int(m)-1]} {year}"
+def month_label(period):
+    year, m = period.split("M")
+    return f"{MONTH_NAMES[int(m) - 1]} {year}"
 
 
-def year_ago(period_code):
-    year, m = period_code.split("M")
-    return f"{int(year)-1}M{m}"
+def period_range_label(periods):
+    return f"{month_label(periods[0])}–{month_label(periods[-1])}"
+
+
+def western_tag(country):
+    return " [Western]" if country in WESTERN else ""
+
+
+def arrow(n):
+    if pd.isna(n) or n == 0:
+        return "—"
+    return "▲" if n > 0 else "▼"
+
+
+def pct_fmt(pct):
+    if pd.isna(pct):
+        return "n/a"
+    return f"{arrow(pct)} {abs(pct):.0f}%"
 
 
 def load_data():
-    monthly = pd.read_csv("data/van77m_raw.csv")
-    monthly["INDHOLD"] = pd.to_numeric(monthly["INDHOLD"], errors="coerce").fillna(0).astype(int)
-    return monthly
+    df = pd.read_csv("data/van77m_raw.csv")
+    df["INDHOLD"] = pd.to_numeric(df["INDHOLD"], errors="coerce").fillna(0).astype(int)
+    edu = df[df["OPHOLD"] == "Study etc., education"]
+    return edu.pivot_table(index="STATSB", columns="TID", values="INDHOLD",
+                            aggfunc="sum", fill_value=0)
 
 
-def analyse(monthly):
-    # All study types, summed by country + period
-    agg = (
-        monthly.groupby(["STATSB", "TID"])["INDHOLD"].sum()
-        .reset_index()
-        .rename(columns={"STATSB": "country", "TID": "period", "INDHOLD": "permits"})
-    )
+def pct_change(baseline, current):
+    return (current - baseline) / baseline.replace(0, pd.NA) * 100
 
-    # Education-only
-    edu = (
-        monthly[monthly["OPHOLD"] == "Study etc., education"]
-        .groupby(["STATSB", "TID"])["INDHOLD"].sum()
-        .reset_index()
-        .rename(columns={"STATSB": "country", "TID": "period", "INDHOLD": "permits_edu"})
-    )
 
-    latest   = agg["period"].max()
-    prev_yr  = year_ago(latest)
-    prev_mth = sorted(agg["period"].unique())[-2] if len(agg["period"].unique()) > 1 else latest
+def analyse(pivot):
+    periods = sorted(pivot.columns)
+    latest = periods[-1]
 
-    this   = agg[agg["period"] == latest].set_index("country")["permits"]
-    last_y = agg[agg["period"] == prev_yr].set_index("country")["permits"]
-    last_m = agg[agg["period"] == prev_mth].set_index("country")["permits"]
+    pre_periods     = [p for p in periods if p < POLICY_START]
+    trailing12       = periods[-TRAILING_SEASONAL_SAFE:]
+    trailing3        = periods[-TRAILING_RAW:]
 
-    this_edu   = edu[edu["period"] == latest].set_index("country")["permits_edu"]
-    last_y_edu = edu[edu["period"] == prev_yr].set_index("country")["permits_edu"]
+    latest_yr, latest_m = latest.split("M")
+    year_ago_period = f"{int(latest_yr) - 1}M{latest_m}"
 
-    # Year-on-year for countries that had ≥10 permits last year
-    yoy = pd.DataFrame({"now": this, "last_year": last_y}).fillna(0)
-    yoy["change"] = yoy["now"] - yoy["last_year"]
-    last = yoy["last_year"].astype(float)
-    yoy["pct"] = (yoy["change"].astype(float) / last.where(last > 0, 1.0) * 100).where(last > 0, 0.0).round(1)
-    yoy_min10     = yoy[yoy["last_year"] >= 10]
+    pre_avg  = pivot[pre_periods].mean(axis=1)
+    pre_sum  = pivot[pre_periods].sum(axis=1)
+    t12_avg  = pivot[trailing12].mean(axis=1)
+    t3_avg   = pivot[trailing3].mean(axis=1)
 
-    top5_now    = this.sort_values(ascending=False).head(5)
-    big_drops   = yoy_min10.nsmallest(5, "pct")
-    big_gains   = yoy_min10.nlargest(5, "pct")
+    t12_pct = pct_change(pre_avg, t12_avg)
+    t3_pct  = pct_change(pre_avg, t3_avg)
 
-    # Jan-to-date running totals (education-only, for press-release comparison)
-    latest_year = latest[:4]
-    prev_year   = str(int(latest_year) - 1)
-    ytd_months  = [f"{latest_year}M{m:02d}" for m in range(1, int(latest[5:]) + 1)]
-    ytd_prev    = [f"{prev_year}M{m:02d}" for m in range(1, int(latest[5:]) + 1)]
+    pool = pivot.index[pre_sum >= MIN_BASELINE_SUM]
+    others_pool = pool.difference(PRESS_RELEASE_COUNTRIES)
 
-    ytd_edu_now  = edu[edu["period"].isin(ytd_months)].groupby("country")["permits_edu"].sum()
-    ytd_edu_prev = edu[edu["period"].isin(ytd_prev)].groupby("country")["permits_edu"].sum()
+    npbd_pre  = pre_avg.reindex(PRESS_RELEASE_COUNTRIES).sum()
+    npbd_t12  = t12_avg.reindex(PRESS_RELEASE_COUNTRIES).sum()
+    npbd_t3   = t3_avg.reindex(PRESS_RELEASE_COUNTRIES).sum()
+
+    others_pre_total = pre_avg.drop(index=PRESS_RELEASE_COUNTRIES, errors="ignore").sum()
+    others_t12_total = t12_avg.drop(index=PRESS_RELEASE_COUNTRIES, errors="ignore").sum()
+    others_t3_total  = t3_avg.drop(index=PRESS_RELEASE_COUNTRIES, errors="ignore").sum()
+
+    leaderboard = t12_pct.loc[others_pool].sort_values().head(LEADERBOARD_SIZE)
+    n_down = (t12_pct.loc[others_pool] < 0).sum()
+    n_total = len(others_pool)
+
+    yoy_shocks = None
+    if year_ago_period in pivot.columns:
+        yoy = pd.DataFrame({"now": pivot[latest], "ya": pivot[year_ago_period]})
+        yoy = yoy[yoy["ya"] >= MIN_YOY_BASE]
+        yoy["change"] = yoy["now"] - yoy["ya"]
+        yoy["pct"] = yoy["change"] / yoy["ya"] * 100
+        yoy_shocks = yoy.reindex(yoy["pct"].abs().sort_values(ascending=False).index).head(SHOCK_LIST_SIZE)
 
     return {
         "latest": latest,
-        "prev_yr": prev_yr,
-        "prev_mth": prev_mth,
-        "top5_now": top5_now,
-        "big_drops": big_drops,
-        "big_gains": big_gains,
-        "this": this,
-        "last_y": last_y,
-        "this_edu": this_edu,
-        "last_y_edu": last_y_edu,
-        "ytd_edu_now": ytd_edu_now,
-        "ytd_edu_prev": ytd_edu_prev,
-        "latest_year": latest_year,
+        "year_ago_period": year_ago_period,
+        "pre_periods": pre_periods,
+        "trailing12": trailing12,
+        "trailing3": trailing3,
+        "npbd_pre": npbd_pre, "npbd_t12": npbd_t12, "npbd_t3": npbd_t3,
+        "others_pre_total": others_pre_total,
+        "others_t12_total": others_t12_total,
+        "others_t3_total": others_t3_total,
+        "leaderboard": leaderboard,
+        "t12_avg": t12_avg, "pre_avg": pre_avg,
+        "n_down": n_down, "n_total": n_total,
+        "yoy_shocks": yoy_shocks,
     }
 
 
-def signed(n):
-    return f"+{n:,.0f}" if n >= 0 else f"{n:,.0f}"
-
-def pct_str(now, prev):
-    if prev == 0:
-        return "new" if now > 0 else "—"
-    p = (now - prev) / prev * 100
-    arrow = "▲" if p > 0 else "▼"
-    return f"{arrow} {abs(p):.0f}%"
-
-
 def build_message(d):
-    latest_label  = month_label(d["latest"])
-    prev_yr_label = month_label(d["prev_yr"])
+    latest_label = month_label(d["latest"])
+    pre_label    = period_range_label(d["pre_periods"])
+    t12_label    = period_range_label(d["trailing12"])
 
-    # Top 5 this month
-    top5_lines = "\n".join(
-        f"  {i+1}. {c}: {int(v):,}"
-        for i, (c, v) in enumerate(d["top5_now"].items())
-    )
+    npbd_t12_pct = pct_change(pd.Series([d["npbd_pre"]]), pd.Series([d["npbd_t12"]])).iloc[0]
+    npbd_t3_pct  = pct_change(pd.Series([d["npbd_pre"]]), pd.Series([d["npbd_t3"]])).iloc[0]
+    others_t12_pct = pct_change(pd.Series([d["others_pre_total"]]), pd.Series([d["others_t12_total"]])).iloc[0]
+    others_t3_pct  = pct_change(pd.Series([d["others_pre_total"]]), pd.Series([d["others_t3_total"]])).iloc[0]
 
-    # Watchlist: Nepal, Bangladesh, key western countries
-    watch_lines = []
-    for c in WATCH_LIST:
-        now  = int(d["this"].get(c, 0))
-        prev = int(d["last_y"].get(c, 0))
-        watch_lines.append(f"  • {c}: {now:,} ({pct_str(now, prev)} vs {prev_yr_label})")
+    tracker_section = f"""*Ministry claim tracker — Nepal + Bangladesh, education permits:*
+{d['npbd_t12']:.0f}/mo over {t12_label} vs {d['npbd_pre']:.0f}/mo pre-tightening baseline ({pct_fmt(npbd_t12_pct)})
+_(raw last 3 months: {d['npbd_t3']:.0f}/mo, {pct_fmt(npbd_t3_pct)} — seasonal, directional only)_"""
 
-    # Education-only YTD for Nepal + Bangladesh (the press-release number)
-    np_ytd_now  = int(d["ytd_edu_now"].get("Nepal", 0))
-    np_ytd_prev = int(d["ytd_edu_prev"].get("Nepal", 0))
-    bd_ytd_now  = int(d["ytd_edu_now"].get("Bangladesh", 0))
-    bd_ytd_prev = int(d["ytd_edu_prev"].get("Bangladesh", 0))
-    combined_now  = np_ytd_now + bd_ytd_now
-    combined_prev = np_ytd_prev + bd_ytd_prev
-
-    # Biggest drops
-    drop_lines = "\n".join(
-        f"  • {c}: {int(r['now']):,} vs {int(r['last_year']):,} ({r['pct']:+.0f}%)"
-        for c, r in d["big_drops"].iterrows()
+    lb_lines = "\n".join(
+        f"  • {country}{western_tag(country)}: {pct_fmt(pct)} vs pre-tightening baseline"
+        for country, pct in d["leaderboard"].items()
     ) or "  None"
 
-    # G7 check
-    g7_now  = sum(int(d["this"].get(c, 0)) for c in G7)
-    g7_prev = sum(int(d["last_y"].get(c, 0)) for c in G7)
+    collateral_section = f"""*Everyone else, combined ({d['n_total']} countries tracked):*
+{d['others_t12_total']:.0f}/mo over {t12_label} vs {d['others_pre_total']:.0f}/mo pre-tightening baseline ({pct_fmt(others_t12_pct)})
+{d['n_down']} of {d['n_total']} down since the policy, {d['n_total'] - d['n_down']} flat or up
+_(raw last 3 months: {pct_fmt(others_t3_pct)} — see caveat above, same seasonal effect hits this figure too)_
+
+*Biggest declines outside Nepal/Bangladesh (12-month basis):*
+{lb_lines}"""
+
+    if d["yoy_shocks"] is not None and len(d["yoy_shocks"]):
+        shock_lines = "\n".join(
+            f"  • {country}{western_tag(country)}: {int(row['now'])} vs {int(row['ya'])} a year ago ({pct_fmt(row['pct'])})"
+            for country, row in d["yoy_shocks"].iterrows()
+        )
+    else:
+        shock_lines = "  Not enough data for a year-on-year comparison yet."
+
+    shock_section = f"""*Biggest single-month moves, {latest_label} vs {month_label(d['year_ago_period'])}:*
+{shock_lines}"""
 
     return f"""📊 *Student permits update — {latest_label}*
 
-*Top 5 source countries (all study types):*
-{top5_lines}
+{tracker_section}
 
-*G7 countries combined:* {g7_now:,} ({pct_str(g7_now, g7_prev)} vs {prev_yr_label})
+──
+{collateral_section}
 
-*Watchlist — year-on-year:*
-{chr(10).join(watch_lines)}
-
-*Biggest drops (min 10 permits last year):*
-{drop_lines}
-
-*Education-only Jan–{MONTH_NAMES[int(d['latest'][5:])-1]} {d['latest_year']} YTD:*
-Nepal + Bangladesh: {combined_now:,} vs {combined_prev:,} same period {int(d['latest_year'])-1} ({pct_str(combined_now, combined_prev)})
-_(This is the number the ministry uses — 'ca. 50' was Jan–May 2026)_"""
+──
+{shock_section}"""
 
 
 def main():
     print("Loading data...")
-    monthly = load_data()
+    pivot = load_data()
 
     print("Analysing...")
-    d = analyse(monthly)
+    d = analyse(pivot)
 
     message = build_message(d)
     print("\n── Message preview ──────────────────────────\n")

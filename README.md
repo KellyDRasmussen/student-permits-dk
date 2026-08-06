@@ -33,12 +33,14 @@ streamlit run app.py
 
 ## Automation
 
-A GitHub Action runs on the 5th of each month, fetches the latest VAN77M data, commits the updated CSVs, and posts a summary to Slack covering:
+A GitHub Action runs on the 5th of each month, fetches the latest VAN77M data, commits the updated CSVs, and posts a summary to Slack covering (education permits only):
 
-- Top source countries that month
-- Year-on-year changes for Nepal, Bangladesh, China, India, Canada, USA, Pakistan, Turkey
-- G7 countries combined
-- Education-only Jan-to-date totals (the number the ministry uses)
+- Nepal + Bangladesh vs their pre-tightening (pre-May 2025) baseline — the ministry's claim, tracked over a rolling 12 months plus a caveated raw 3-month figure
+- The same baseline comparison for every other tracked country combined, to check whether the tightening is depressing permits more broadly or is specific to Nepal/Bangladesh
+- The countries (outside Nepal/Bangladesh) with the biggest declines vs their own pre-tightening baseline
+- The biggest single-month swings vs the same month last year, across all tracked countries
+
+All comparisons are rolling, so the report changes with the data each month instead of reprinting the same fixed sections.
 
 To enable Slack notifications, add your webhook URL as a repository secret named `SLACK_WEBHOOK`. You can also trigger the action manually from the Actions tab.
 
