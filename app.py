@@ -94,38 +94,68 @@ def compute_y_max(df):
     return float(max(individual_max, agg_max)) * 1.08
 
 
-def build_selection_table(df):
-    """Jan–May comparison table derived from the already-built dataset."""
+def compute_ytd_meta(df_all):
+    """Rolling YTD-style window: latest available month of the latest year,
+    applied to every year present, so the comparison keeps working as new
+    months and new years arrive instead of freezing on hardcoded years."""
+    monthly = df_all[df_all["period_type"] == "monthly"].copy()
+    month_num = monthly["period"].astype(str).apply(lambda p: MONTH_NAMES.index(p.split(" ")[0]) + 1)
+    year      = monthly["period"].astype(str).apply(lambda p: 2000 + int(p.split("'")[-1]))
+    latest_year  = int(year.max())
+    latest_month = int(month_num[year == latest_year].max())
+    prev_year    = latest_year - 1
+    range_label  = f"{MONTH_NAMES[0]}–{MONTH_NAMES[latest_month - 1]}"
+
+    def col(y):
+        return f"{range_label} '{y % 100:02d}"
+
+    return {
+        "latest_year": latest_year, "prev_year": prev_year, "latest_month": latest_month,
+        "range_label": range_label, "col": col,
+        "cur_col": col(latest_year), "prev_col": col(prev_year),
+        "delta_label": f"Δ '{prev_year % 100:02d}→'{latest_year % 100:02d}",
+    }
+
+
+def build_selection_table(df, meta):
+    """Year-to-date comparison table, truncated to the latest available month."""
     monthly = df[df["period_type"] == "monthly"].copy()
     monthly["month_num"] = monthly["period"].astype(str).apply(
         lambda p: MONTH_NAMES.index(p.split(" ")[0]) + 1
     )
-    monthly["yr"] = monthly["period"].astype(str).apply(
-        lambda p: "'24" if "'24" in p else ("'25" if "'25" in p else "'26")
-    )
-    ytd = (
-        monthly[monthly["month_num"] <= 5]
-        .groupby(["country", "yr"], observed=True)["permits"].sum()
-        .unstack("yr").fillna(0).astype(int)
-        .reindex(columns=["'24", "'25", "'26"], fill_value=0)
-        .rename(columns={"'24": "Jan–May '24", "'25": "Jan–May '25", "'26": "Jan–May '26"})
-    )
-    with_data = ytd[ytd[["Jan–May '24", "Jan–May '25", "Jan–May '26"]].sum(axis=1) > 0].copy()
-    prev = with_data["Jan–May '25"].astype(float)
-    change = (with_data["Jan–May '26"] - with_data["Jan–May '25"]).astype(float)
-    pct = (change / prev.where(prev > 0, 1.0) * 100).where(prev > 0, 0.0)
-    with_data["Δ '25→'26"] = pct.round(0).astype(int)
-    sorted_data = with_data.sort_values("Jan–May '25", ascending=False)
+    monthly["year"] = monthly["period"].astype(str).apply(lambda p: 2000 + int(p.split("'")[-1]))
 
-    t24 = int(sorted_data["Jan–May '24"].sum())
-    t25 = int(sorted_data["Jan–May '25"].sum())
-    t26 = int(sorted_data["Jan–May '26"].sum())
-    t_pct = round((t26 - t25) / t25 * 100) if t25 > 0 else 0
-    total = pd.DataFrame(
-        [{"Jan–May '24": t24, "Jan–May '25": t25, "Jan–May '26": t26, "Δ '25→'26": t_pct}],
-        index=["Total"],
+    ytd = (
+        monthly[monthly["month_num"] <= meta["latest_month"]]
+        .groupby(["country", "year"], observed=True)["permits"].sum()
+        .unstack("year").fillna(0).astype(int)
     )
-    return pd.concat([sorted_data, total])
+    years_present = sorted(ytd.columns)
+    ytd = ytd.reindex(columns=years_present, fill_value=0)
+    ytd.columns = [meta["col"](y) for y in years_present]
+
+    with_data = ytd[ytd.sum(axis=1) > 0].copy()
+
+    cur_col, prev_col, delta_label = meta["cur_col"], meta["prev_col"], meta["delta_label"]
+    if prev_col in with_data.columns and cur_col in with_data.columns:
+        prev_vals = with_data[prev_col].astype(float)
+        change = (with_data[cur_col] - with_data[prev_col]).astype(float)
+        pct = (change / prev_vals.where(prev_vals > 0, 1.0) * 100).where(prev_vals > 0, 0.0)
+        with_data[delta_label] = pct.round(0).astype(int)
+        sort_col = prev_col
+    else:
+        with_data[delta_label] = 0
+        sort_col = with_data.columns[0]
+
+    sorted_data = with_data.sort_values(sort_col, ascending=False)
+
+    totals = {c: int(sorted_data[c].sum()) for c in ytd.columns}
+    if totals.get(prev_col, 0) > 0:
+        totals[delta_label] = round((totals[cur_col] - totals[prev_col]) / totals[prev_col] * 100)
+    else:
+        totals[delta_label] = 0
+    total_row = pd.DataFrame([totals], index=["Total"])
+    return pd.concat([sorted_data, total_row])
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -219,6 +249,8 @@ if not aggregate_mode and min_permits > 0:
     peak = df[df["period_type"] == "annual"].groupby("country")["permits"].max()
     df = df[df["country"].isin(peak[peak >= min_permits].index)]
 
+YTD_META = compute_ytd_meta(df_all)
+
 df_table = df_all.copy()
 if dimension != "Show all" and not aggregate_mode:
     _tcol = dimension.split(" / ")[0].lower().replace(" ", "_")
@@ -226,7 +258,7 @@ if dimension != "Show all" and not aggregate_mode:
 if not aggregate_mode and min_permits > 0:
     _peak = df_table[df_table["period_type"] == "annual"].groupby("country")["permits"].max()
     df_table = df_table[df_table["country"].isin(_peak[_peak >= min_permits].index)]
-sel_table = build_selection_table(df_table)
+sel_table = build_selection_table(df_table, YTD_META)
 
 # Drop any prior selections that are no longer visible in the current table view.
 selected_countries = [c for c in selected_countries if c in sel_table.index]
@@ -239,21 +271,19 @@ display_table = sel_table
 
 _monthly_label_set = set(MONTHLY_LABELS.values())
 
-def _range_metric(col_widget, label, df_periods):
+def _range_metric(col_widget, label, df_periods, meta):
     monthly = df_periods[df_periods["period"].astype(str).isin(_monthly_label_set)].copy()
     monthly["month_num"] = monthly["period"].astype(str).apply(
         lambda p: MONTH_NAMES.index(p.split(" ")[0]) + 1
     )
-    monthly["yr"] = monthly["period"].astype(str).apply(
-        lambda p: "'25" if "'25" in str(p) else ("'26" if "'26" in str(p) else "other")
-    )
-    ytd = monthly[monthly["month_num"] <= 5].groupby("yr", observed=True)["permits"].sum()
-    v25 = int(ytd.get("'25", 0))
-    v26 = int(ytd.get("'26", 0))
+    monthly["year"] = monthly["period"].astype(str).apply(lambda p: 2000 + int(p.split("'")[-1]))
+    ytd = monthly[monthly["month_num"] <= meta["latest_month"]].groupby("year", observed=True)["permits"].sum()
+    v_prev = int(ytd.get(meta["prev_year"], 0))
+    v_cur  = int(ytd.get(meta["latest_year"], 0))
     col_widget.metric(
-        f"{label}: Jan–May '25 vs '26",
-        f"{v25:,} → {v26:,}",
-        delta=f"{v26 - v25:+,}",
+        f"{label}: {meta['range_label']} '{meta['prev_year'] % 100:02d} vs '{meta['latest_year'] % 100:02d}",
+        f"{v_prev:,} → {v_cur:,}",
+        delta=f"{v_cur - v_prev:+,}",
         delta_color="inverse",
     )
 
@@ -276,7 +306,7 @@ elif dimension != "Show all":
 metric_cols = st.columns(max(2, 1 + len(dynamic_metrics)))
 metric_cols[0].metric("Permit type", "Education only" if education_only else "All study types")
 for i, (label, df_m) in enumerate(dynamic_metrics):
-    _range_metric(metric_cols[i + 1], label, df_m)
+    _range_metric(metric_cols[i + 1], label, df_m, YTD_META)
 
 st.divider()
 
@@ -449,7 +479,7 @@ event = st.dataframe(
     on_select="rerun",
     selection_mode="multi-row",
     key="country_selector",
-    column_config={"Δ '25→'26": st.column_config.NumberColumn("Δ '25→'26", format="%+d%%")},
+    column_config={YTD_META["delta_label"]: st.column_config.NumberColumn(YTD_META["delta_label"], format="%+d%%")},
 )
 raw_rows   = event.selection.rows
 valid_rows = [i for i in raw_rows if i < len(display_table)]
@@ -458,11 +488,12 @@ if len(raw_rows) > 5:
     st.caption("⚠️ Only the first 5 plotted.")
 
 if compare_mode:
-    subset = sel_table.loc[selected_countries, ["Jan–May '24", "Jan–May '25", "Jan–May '26"]]
-    t24, t25, t26 = int(subset["Jan–May '24"].sum()), int(subset["Jan–May '25"].sum()), int(subset["Jan–May '26"].sum())
-    t_pct = round((t26 - t25) / t25 * 100) if t25 > 0 else 0
+    prev_col, cur_col = YTD_META["prev_col"], YTD_META["cur_col"]
+    subset = sel_table.loc[selected_countries, [prev_col, cur_col]]
+    t_prev, t_cur = int(subset[prev_col].sum()), int(subset[cur_col].sum())
+    t_pct = round((t_cur - t_prev) / t_prev * 100) if t_prev > 0 else 0
     names = " + ".join(selected_countries)
-    st.caption(f"Selected total — {names}: {t25:,} → {t26:,} ({t_pct:+}%)")
+    st.caption(f"Selected total — {names}: {t_prev:,} → {t_cur:,} ({t_pct:+}%)")
 
 if new_selection != st.session_state.selected_countries:
     st.session_state.selected_countries = new_selection
