@@ -41,9 +41,9 @@ A GitHub Action runs on the 5th of each month, fetches the latest VAN77M data, c
 - The countries (outside Nepal/Bangladesh) with the biggest declines vs their own pre-tightening baseline
 - The biggest single-month swings vs the same month last year, across all tracked countries
 
-**"Other reasons"** — a separate, unexplained OPHOLD category (distinct from au pair/interns, which are tracked separately; Statbank publishes no further breakdown of what it covers):
+**"Other reasons"** — a separate OPHOLD category, distinct from au pair/interns (tracked separately). Statbank's own metadata gives no further breakdown of what it covers, but it's very likely accompanying family of student-permit holders: the May 2025 measures explicitly eliminated family reunification for students at non-state-approved institutions — the same month this category's baseline splits from — and a dependent joining someone here on a study permit would plausibly be coded under the student's own "Study etc." purpose group rather than the general family-reunification codes (3A–5C), which are for reunification with people who already hold independent status. Treat this as a well-supported hypothesis, not a confirmed fact.
 - Aggregate change across all tracked countries vs their pre-tightening baseline
-- The biggest declines and biggest gains vs each country's own baseline — this category fell ~45% overall post-tightening, concentrated in Nepal/Iran/Sri Lanka/Iraq/Bangladesh while rising for the USA/Australia/Japan, a pattern the education-only numbers don't show
+- The biggest declines and biggest gains vs each country's own baseline — this category fell ~45% overall post-tightening, concentrated in Nepal/Iran/Sri Lanka/Iraq/Bangladesh while rising for the USA/Australia/Japan, echoing the broader Non-Western-down/Western-up pattern from the [June 2026 "Good news/bad news" piece](https://danishdata.substack.com/p/good-newsbad-news) — a pattern the education-only numbers alone don't show
 
 All comparisons are rolling, so the report changes with the data each month instead of reprinting the same fixed sections.
 
