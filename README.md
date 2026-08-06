@@ -33,12 +33,17 @@ streamlit run app.py
 
 ## Automation
 
-A GitHub Action runs on the 5th of each month, fetches the latest VAN77M data, commits the updated CSVs, and posts a summary to Slack covering (education permits only):
+A GitHub Action runs on the 5th of each month, fetches the latest VAN77M data, commits the updated CSVs, and posts a summary to Slack covering two permit categories:
 
+**Education** (the ministry's press-release category):
 - Nepal + Bangladesh vs their pre-tightening (pre-May 2025) baseline — the ministry's claim, tracked over a rolling 12 months plus a caveated raw 3-month figure
 - The same baseline comparison for every other tracked country combined, to check whether the tightening is depressing permits more broadly or is specific to Nepal/Bangladesh
 - The countries (outside Nepal/Bangladesh) with the biggest declines vs their own pre-tightening baseline
 - The biggest single-month swings vs the same month last year, across all tracked countries
+
+**"Other reasons"** — a separate, unexplained OPHOLD category (distinct from au pair/interns, which are tracked separately; Statbank publishes no further breakdown of what it covers):
+- Aggregate change across all tracked countries vs their pre-tightening baseline
+- The biggest declines and biggest gains vs each country's own baseline — this category fell ~45% overall post-tightening, concentrated in Nepal/Iran/Sri Lanka/Iraq/Bangladesh while rising for the USA/Australia/Japan, a pattern the education-only numbers don't show
 
 All comparisons are rolling, so the report changes with the data each month instead of reprinting the same fixed sections.
 
