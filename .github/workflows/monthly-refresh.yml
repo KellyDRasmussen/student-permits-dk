@@ -1,7 +1,13 @@
 # .github/workflows/monthly-refresh.yml
 #
-# Runs on the 5th of each month at 06:00 UTC — by then Statistics Denmark
-# has usually published the previous month's VAN77M data (~3 weeks after month end).
+# Runs on the 12th of each month at 06:00 UTC. Statistics Denmark actually
+# publishes each month's VAN77M data ~5.5-6 weeks after month-end (not the
+# ~3 weeks originally assumed here) — e.g. July 2026 data landed 2026-09-07.
+# The 5th consistently fired before that month's release existed, silently
+# posting a Slack update still one month stale; the 12th gives enough
+# buffer to catch it most months. fetch_data.py self-corrects to whatever
+# is actually published either way, so an early run is harmless — worst
+# case it just re-fetches the same latest month again.
 #
 # Fetches fresh data, posts juicy deets to Slack, commits updated CSVs.
 # To test manually: Actions → "Monthly data refresh" → Run workflow.
@@ -10,7 +16,7 @@ name: Monthly data refresh
 
 on:
   schedule:
-    - cron: '0 6 5 * *'
+    - cron: '0 6 12 * *'
   workflow_dispatch:
 
 jobs:

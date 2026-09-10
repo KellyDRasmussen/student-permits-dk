@@ -15,7 +15,14 @@ def _month_label(code):
     year, m = code.split("M")
     return f"{MONTH_NAMES[int(m)-1]} '{year[2:]}"
 
-ANNUAL_PERIODS = ["2021", "2022", "2023"]
+def _annual_periods_from_csv():
+    try:
+        tids = pd.read_csv(ANNUAL_PATH, usecols=["TID"])["TID"].dropna().unique()
+        return sorted(str(t) for t in tids)
+    except Exception:
+        return ["2021", "2022", "2023"]
+
+ANNUAL_PERIODS = _annual_periods_from_csv()
 
 def _monthly_codes_from_csv():
     try:
@@ -163,7 +170,8 @@ def build_selection_table(df, meta):
 with st.sidebar:
     st.title("Student permits")
     _monthly_range = f"{MONTHLY_LABELS[MONTHLY_CODES[0]]} – {MONTHLY_LABELS[MONTHLY_CODES[-1]]}" if MONTHLY_CODES else "—"
-    st.caption(f"VAN66 annual 2021–2023  ·  VAN77M monthly {_monthly_range}")
+    _annual_range  = f"{ANNUAL_PERIODS[0]}–{ANNUAL_PERIODS[-1]}" if ANNUAL_PERIODS else "—"
+    st.caption(f"VAN66 annual {_annual_range}  ·  VAN77M monthly {_monthly_range}")
 
     if not all(p.exists() for p in (ANNUAL_PATH, MONTHLY_PATH)):
         st.error("Run `python fetch_data.py` first.")
@@ -516,4 +524,4 @@ if new_selection != st.session_state.selected_countries:
     st.rerun()
 
 st.markdown("---")
-st.caption("Source: Statistics Denmark — VAN66 (annual, 2021–2023) and VAN77M (monthly, Jan 2024–present). statbank.dk")
+st.caption(f"Source: Statistics Denmark — VAN66 (annual, {_annual_range}) and VAN77M (monthly, {_monthly_range}). statbank.dk")
