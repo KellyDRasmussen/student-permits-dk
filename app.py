@@ -263,6 +263,7 @@ sel_table = build_selection_table(df_table, YTD_META)
 # Drop any prior selections that are no longer visible in the current table view.
 selected_countries = [c for c in selected_countries if c in sel_table.index]
 compare_mode = len(selected_countries) > 0
+show_all_total = dimension == "Show all" and not compare_mode
 
 display_table = sel_table
 
@@ -410,6 +411,28 @@ elif aggregate_mode:
             hovertemplate=f"<b>{grp_label}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
         ))
 
+elif show_all_total:
+    # ── Single total line summing every country ────────────────────────────
+    total_df = (
+        df_all.groupby("period", observed=True)["permits"].sum()
+        .reset_index().sort_values("period")
+    )
+    texts = [""] * len(total_df)
+    texts[-1] = "All countries"
+    fig.add_trace(go.Scatter(
+        x=total_df["period"].astype(str),
+        y=total_df["permits"],
+        mode="lines+markers+text",
+        name="All countries",
+        text=texts,
+        textposition="middle right",
+        textfont=dict(size=12, color=AGG_COLORS[0]),
+        line=dict(color=AGG_COLORS[0], width=2.5),
+        marker=dict(size=4),
+        showlegend=False,
+        hovertemplate="<b>All countries</b><br>%{x}: %{y:,}<extra></extra>",
+    ))
+
 else:
     # ── Individual country lines (group/threshold view) ───────────────────
     palette = px.colors.qualitative.Safe
@@ -442,7 +465,7 @@ fig.update_layout(
     yaxis=dict(
         title=dict(text="Study permits issued", font=dict(color="#444")),
         tickfont=dict(color="#444"),
-        range=[0, y_max] if not compare_mode else None,
+        range=[0, y_max] if not (compare_mode or show_all_total) else None,
     ),
     hovermode="closest",
     showlegend=False,
