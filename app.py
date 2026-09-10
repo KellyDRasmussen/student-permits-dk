@@ -358,31 +358,61 @@ for jan_label in JAN_TICKS:
         line=dict(color="rgba(150,150,150,0.2)", width=1), layer="below",
     )
 
+# Annual points are whole-year totals; monthly points are single-month totals.
+# Plotting both as one connected line implies a ~12x rate crash that isn't real,
+# so annual gets bars (a visually distinct "whole year" block) and monthly gets
+# its own disconnected line — nothing implies a rate change across the seam.
+MONTHLY_LABEL_SET = set(MONTHLY_LABELS.values())
+
+def add_series(edf, label, color, *, show_text=True, show_markers=True,
+                line_width=2.5, opacity=1.0, text_size=11):
+    edf = edf.sort_values("period")
+    periods_str = edf["period"].astype(str)
+    annual_df  = edf[periods_str.isin(ANNUAL_PERIODS)]
+    monthly_df = edf[periods_str.isin(MONTHLY_LABEL_SET)]
+
+    if not annual_df.empty:
+        fig.add_trace(go.Bar(
+            x=annual_df["period"].astype(str),
+            y=annual_df["permits"],
+            name=label,
+            marker=dict(color=color),
+            opacity=min(opacity, 0.6),
+            showlegend=False,
+            hovertemplate=f"<b>{label}</b><br>%{{x}} (full year): %{{y:,}}<extra></extra>",
+        ))
+
+    if not monthly_df.empty:
+        texts = [""] * len(monthly_df)
+        if show_text:
+            texts[-1] = label
+        fig.add_trace(go.Scatter(
+            x=monthly_df["period"].astype(str),
+            y=monthly_df["permits"],
+            mode=("lines+markers+text" if show_markers else "lines+text") if show_text
+                 else ("lines+markers" if show_markers else "lines"),
+            name=label,
+            text=texts,
+            textposition="middle right",
+            textfont=dict(size=text_size, color=color),
+            line=dict(color=color, width=line_width),
+            marker=dict(size=5 if show_markers else 0),
+            opacity=opacity,
+            showlegend=False,
+            hovertemplate=f"<b>{label}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
+        ))
+
+
 if compare_mode:
     # ── Up to 5 selected countries, individually labelled ─────────────────
     for i, country in enumerate(selected_countries):
-        cdf = df_all[df_all["country"] == country].sort_values("period")
+        cdf = df_all[df_all["country"] == country]
         if cdf.empty:
             continue
-        color = OKABE_ITO[i % len(OKABE_ITO)]
-        texts = [""] * len(cdf)
-        texts[-1] = country
-        fig.add_trace(go.Scatter(
-            x=cdf["period"].astype(str),
-            y=cdf["permits"],
-            mode="lines+markers+text",
-            name=country,
-            text=texts,
-            textposition="middle right",
-            textfont=dict(size=11, color=color),
-            line=dict(color=color, width=2.5),
-            marker=dict(size=5),
-            showlegend=False,
-            hovertemplate=f"<b>{country}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
-        ))
+        add_series(cdf, country, OKABE_ITO[i % len(OKABE_ITO)], text_size=11)
 
 elif aggregate_mode:
-    # ── Two group-total lines ─────────────────────────────────────────────
+    # ── Two group totals ────────────────────────────────────────────────────
     dim_col = dimension.split(" / ")[0].lower().replace(" ", "_")
     group_agg = (
         df_all.groupby([dim_col, "period"], observed=True)["permits"].sum()
@@ -392,67 +422,30 @@ elif aggregate_mode:
         group_agg["period"], categories=PERIOD_ORDER, ordered=True
     )
     for i, grp_label in enumerate([label_in, label_out]):
-        gdf = group_agg[group_agg["grp"] == grp_label].sort_values("period")
+        gdf = group_agg[group_agg["grp"] == grp_label]
         if gdf.empty:
             continue
-        color = AGG_COLORS[i]
-        texts = [""] * len(gdf)
-        texts[-1] = grp_label
-        fig.add_trace(go.Scatter(
-            x=gdf["period"].astype(str),
-            y=gdf["permits"],
-            mode="lines+text",
-            name=grp_label,
-            text=texts,
-            textposition="middle right",
-            textfont=dict(size=12, color=color),
-            line=dict(color=color, width=2.5),
-            showlegend=False,
-            hovertemplate=f"<b>{grp_label}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
-        ))
+        add_series(gdf, grp_label, AGG_COLORS[i], show_markers=False, text_size=12)
 
 elif show_all_total:
-    # ── Single total line summing every country ────────────────────────────
-    total_df = (
-        df_all.groupby("period", observed=True)["permits"].sum()
-        .reset_index().sort_values("period")
-    )
-    texts = [""] * len(total_df)
-    texts[-1] = "All countries"
-    fig.add_trace(go.Scatter(
-        x=total_df["period"].astype(str),
-        y=total_df["permits"],
-        mode="lines+markers+text",
-        name="All countries",
-        text=texts,
-        textposition="middle right",
-        textfont=dict(size=12, color=AGG_COLORS[0]),
-        line=dict(color=AGG_COLORS[0], width=2.5),
-        marker=dict(size=4),
-        showlegend=False,
-        hovertemplate="<b>All countries</b><br>%{x}: %{y:,}<extra></extra>",
-    ))
+    # ── Single total summing every country ──────────────────────────────────
+    total_df = df_all.groupby("period", observed=True)["permits"].sum().reset_index()
+    add_series(total_df, "All countries", AGG_COLORS[0], text_size=12)
 
 else:
-    # ── Individual country lines (group/threshold view) ───────────────────
+    # ── Individual country lines (group/threshold view) ────────────────────
     palette = px.colors.qualitative.Safe
     for i, country in enumerate(sorted(df["country"].unique())):
-        cdf = df[df["country"] == country].sort_values("period")
-        fig.add_trace(go.Scatter(
-            x=cdf["period"].astype(str),
-            y=cdf["permits"],
-            mode="lines",
-            name=country,
-            line=dict(color=palette[i % len(palette)], width=1.5),
-            opacity=0.7,
-            showlegend=False,
-            hovertemplate=f"<b>{country}</b><br>%{{x}}: %{{y:,}}<extra></extra>",
-        ))
+        cdf = df[df["country"] == country]
+        add_series(cdf, country, palette[i % len(palette)],
+                   show_text=False, show_markers=False, line_width=1.5, opacity=0.7)
 
 fig.update_layout(
+    barmode="group",
     height=560,
     xaxis=dict(
         title=None,
+        type="category",
         categoryorder="array",
         categoryarray=PERIOD_ORDER,
         tickmode="array",
