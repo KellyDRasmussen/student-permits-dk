@@ -36,10 +36,11 @@ streamlit run app.py
 A GitHub Action runs on the 5th of each month, fetches the latest VAN77M data, commits the updated CSVs, and posts a summary to Slack covering two permit categories:
 
 **Education** (the ministry's press-release category):
-- Nepal + Bangladesh vs their pre-tightening (pre-May 2025) baseline — the ministry's claim, tracked over a rolling 12 months plus a caveated raw 3-month figure
-- The same baseline comparison for every other tracked country combined, to check whether the tightening is depressing permits more broadly or is specific to Nepal/Bangladesh
-- The countries (outside Nepal/Bangladesh) with the biggest declines vs their own pre-tightening baseline
-- The biggest single-month swings vs the same month last year, across all tracked countries
+- Nepal + Bangladesh vs their pre-tightening baseline (May 2024–Apr 2025) — the ministry's claim, tracked over a rolling 12 months plus a caveated raw 3-month figure
+- The same baseline comparison for every other tracked country combined except the USA, to check whether the tightening is depressing permits more broadly or is specific to Nepal/Bangladesh
+- The countries (outside Nepal/Bangladesh and the USA) with the biggest declines vs their own pre-tightening baseline
+- The USA on its own lines, comparing each autumn (Jul–Oct) and spring (Dec–Feb) intake with the same intake a year earlier, because its permits arrive in large batches that distort a 12-month window when one shifts by a month
+- The biggest single-month swings vs the same month last year, across tracked countries with at least 20 permits in the year-ago month, excluding the USA
 
 **"Other reasons"** — a separate OPHOLD category, distinct from au pair/interns (tracked separately). Statbank's own metadata gives no further breakdown of what it covers, but it's very likely accompanying family of student-permit holders: the May 2025 measures explicitly eliminated family reunification for students at non-state-approved institutions — the same month this category's baseline splits from — and a dependent joining someone here on a study permit would plausibly be coded under the student's own "Study etc." purpose group rather than the general family-reunification codes (3A–5C), which are for reunification with people who already hold independent status. Treat this as a well-supported hypothesis, not a confirmed fact.
 - Aggregate change across all tracked countries vs their pre-tightening baseline

@@ -22,7 +22,9 @@ import requests
 
 from countries import WESTERN
 
-SLACK_WEBHOOK = os.environ["SLACK_WEBHOOK"]
+# Unset locally = dry run (prints the message, posts nothing). Unset in
+# GitHub Actions is an error, so a missing secret can't pass as a green run.
+SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK")
 
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -34,6 +36,18 @@ POLICY_START = "2025M05"
 # The ministry's June 2026 press release was specifically about these two,
 # in the education category.
 PRESS_RELEASE_COUNTRIES = ["Nepal", "Bangladesh"]
+
+# Countries whose education permits arrive in a few large batches a year
+# (USA: Sep and Jan). One batch shifting by a month (Sep 2026 appears to have
+# moved to Aug) puts three batches in a 12-month window and fakes a surge,
+# then a crash. They are about half of "everyone else", so they're reported
+# on their own lines, intake by intake, and kept out of the aggregate,
+# leaderboard and single-month scan.
+LUMPY_COUNTRIES = ["USA"]
+
+# Baseline length. Exactly 12 months (May 2024-Apr 2025) so every calendar
+# month is counted once; using all pre-policy months double-counted Jan-Apr.
+BASELINE_MONTHS = 12
 
 CATEGORIES = [
     ("Education", "Study etc., education"),
@@ -49,12 +63,14 @@ TRAILING_RAW = 3
 
 # Minimum total permits during the pre-policy period for a country to be
 # included in a leaderboard/aggregate — keeps single-digit-a-year countries
-# from dominating a %-change ranking on noise.
-MIN_BASELINE_SUM = 30
+# from dominating a %-change ranking on noise. Same monthly rate as the
+# 30-over-16-months bar used before the baseline became 12 months.
+MIN_BASELINE_SUM = 23
 
 # Minimum year-ago count for a country to be included in the monthly
-# shock scan, same reasoning.
-MIN_YOY_BASE = 5
+# shock scan. Single months are noisy, so this is set higher than the
+# baseline threshold (0 vs 11 is not a story).
+MIN_YOY_BASE = 20
 
 LEADERBOARD_SIZE = 5
 SHOCK_LIST_SIZE = 5
@@ -106,7 +122,7 @@ def category_stats(pivot):
     periods = sorted(pivot.columns)
     latest = periods[-1]
 
-    pre_periods = [p for p in periods if p < POLICY_START]
+    pre_periods = [p for p in periods if p < POLICY_START][-BASELINE_MONTHS:]
     trailing12  = periods[-TRAILING_SEASONAL_SAFE:]
     trailing3   = periods[-TRAILING_RAW:]
 
@@ -138,17 +154,57 @@ def monthly_yoy_shocks(pivot, stats, n=SHOCK_LIST_SIZE):
     return yoy.reindex(yoy["pct"].abs().sort_values(ascending=False).index).head(n)
 
 
+# Intake seasons for lumpy countries: autumn Jul-Oct catches the Sep batch
+# even if it lands in Aug or Oct; spring Dec-Feb catches the Jan batch.
+AUTUMN = ["07", "08", "09", "10"]
+
+
+def intake_totals(row, periods):
+    """{label: (total, complete?)} for each autumn and spring intake."""
+    have = set(periods)
+    out = {}
+    for y in sorted({p[:4] for p in periods}):
+        months = [f"{y}M{m}" for m in AUTUMN]
+        if any(m in have for m in months):
+            out[f"Autumn {y}"] = (sum(row.get(m, 0) for m in months),
+                                  all(m in have for m in months))
+        months = [f"{int(y) - 1}M12", f"{y}M01", f"{y}M02"]
+        if any(m in have for m in months):
+            out[f"Spring {y}"] = (sum(row.get(m, 0) for m in months),
+                                  all(m in have for m in months))
+    return out
+
+
+def lumpy_stats(pivot, stats):
+    """Latest autumn and spring intakes vs the same intake a year earlier."""
+    rows = {}
+    for c in LUMPY_COUNTRIES:
+        if c not in pivot.index:
+            continue
+        it = intake_totals(pivot.loc[c].to_dict(), stats["periods"])
+        lines = []
+        for season in ("Autumn", "Spring"):
+            keys = sorted(k for k in it if k.startswith(season))
+            if len(keys) >= 2:
+                (cur_k, prev_k) = keys[-1], keys[-2]
+                (cur, done), (prev, _) = it[cur_k], it[prev_k]
+                lines.append((cur_k, cur, done, prev_k, prev))
+        rows[c] = lines
+    return rows
+
+
 def analyse_education(pivot):
     s = category_stats(pivot)
-    others_pool = s["pool"].difference(PRESS_RELEASE_COUNTRIES)
+    excluded = PRESS_RELEASE_COUNTRIES + LUMPY_COUNTRIES
+    others_pool = s["pool"].difference(excluded)
 
     npbd_pre = s["pre_avg"].reindex(PRESS_RELEASE_COUNTRIES).sum()
     npbd_t12 = s["t12_avg"].reindex(PRESS_RELEASE_COUNTRIES).sum()
     npbd_t3  = s["t3_avg"].reindex(PRESS_RELEASE_COUNTRIES).sum()
 
-    others_pre_total = s["pre_avg"].drop(index=PRESS_RELEASE_COUNTRIES, errors="ignore").sum()
-    others_t12_total = s["t12_avg"].drop(index=PRESS_RELEASE_COUNTRIES, errors="ignore").sum()
-    others_t3_total  = s["t3_avg"].drop(index=PRESS_RELEASE_COUNTRIES, errors="ignore").sum()
+    others_pre_total = s["pre_avg"].drop(index=excluded, errors="ignore").sum()
+    others_t12_total = s["t12_avg"].drop(index=excluded, errors="ignore").sum()
+    others_t3_total  = s["t3_avg"].drop(index=excluded, errors="ignore").sum()
 
     leaderboard = s["t12_pct"].loc[others_pool].sort_values().head(LEADERBOARD_SIZE)
     n_down = (s["t12_pct"].loc[others_pool] < 0).sum()
@@ -160,7 +216,8 @@ def analyse_education(pivot):
         "others_t12_total": others_t12_total, "others_t3_total": others_t3_total,
         "leaderboard": leaderboard,
         "n_down": n_down, "n_total": len(others_pool),
-        "yoy_shocks": monthly_yoy_shocks(pivot, s),
+        "yoy_shocks": monthly_yoy_shocks(pivot.drop(index=LUMPY_COUNTRIES, errors="ignore"), s),
+        "lumpy": lumpy_stats(pivot, s),
     }
 
 
@@ -197,13 +254,23 @@ _(raw last 3 months: {d['npbd_t3']:.0f}/mo, {pct_fmt(npbd_t3_pct)} — seasonal,
         for country, pct in d["leaderboard"].items()
     ) or "  None"
 
-    collateral = f"""*Everyone else, combined ({d['n_total']} countries tracked):*
+    collateral = f"""*Everyone else, combined ({d['n_total']} countries tracked, excl. {", ".join(LUMPY_COUNTRIES)}):*
 {d['others_t12_total']:.0f}/mo over {t12_label} vs {d['others_pre_total']:.0f}/mo pre-tightening baseline ({pct_fmt(others_t12_pct)})
 {d['n_down']} of {d['n_total']} down since the policy, {d['n_total'] - d['n_down']} flat or up
 _(raw last 3 months: {pct_fmt(others_t3_pct)} — same seasonal effect as above hits this figure too)_
 
 *Biggest declines outside Nepal/Bangladesh (12-month basis):*
 {lb_lines}"""
+
+    lumpy_lines = "\n".join(
+        f"  • {c}{western_tag(c)} {cur_k}: {cur:.0f} vs {prev:.0f} in {prev_k}"
+        + (f" ({pct_fmt((cur - prev) / prev * 100)})" if done and prev else " (intake still in progress)")
+        for c, lines in d["lumpy"].items()
+        for cur_k, cur, done, prev_k, prev in lines
+    )
+    if lumpy_lines:
+        collateral += ("\n\n*Reported separately — permits arrive in large batches, "
+                       "compared intake by intake:*\n" + lumpy_lines)
 
     if d["yoy_shocks"] is not None and len(d["yoy_shocks"]):
         shock_lines = "\n".join(
@@ -272,6 +339,11 @@ def main():
     print(message)
     print("\n─────────────────────────────────────────────\n")
 
+    if not SLACK_WEBHOOK:
+        if os.environ.get("GITHUB_ACTIONS"):
+            raise RuntimeError("SLACK_WEBHOOK is not set — nothing posted.")
+        print("SLACK_WEBHOOK not set — dry run, nothing posted.")
+        return
     resp = requests.post(SLACK_WEBHOOK, json={"text": message}, timeout=30)
     resp.raise_for_status()
     print("Sent to Slack.")
